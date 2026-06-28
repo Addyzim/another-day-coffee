@@ -60,6 +60,7 @@ const STRINGS = {
     send: "Place order", viewOrder: "View order", items: "items", item: "item",
     total: "Total", emptyCart: "Your order is empty.", tablePh: "e.g. 5",
     notePh: "Any special requests?", footer: "See you another day",
+    rights: "All rights reserved.",
     editHint: "Tap any name, price, or description to edit. Then Export .json and commit it to publish.",
     orderPlaced: "Order placed — thank you!", orderFailed: "Couldn't place the order. Please try again.",
     orderUnavailable: "Online ordering isn't available yet.", placing: "Placing…",
@@ -74,6 +75,7 @@ const STRINGS = {
     send: "Đặt món", viewOrder: "Xem đơn", items: "món", item: "món",
     total: "Tổng", emptyCart: "Đơn của bạn đang trống.", tablePh: "vd. 5",
     notePh: "Yêu cầu đặc biệt?", footer: "Hẹn gặp lại ngày mai",
+    rights: "Bảo lưu mọi quyền.",
     editHint: "Chạm vào tên, giá hoặc mô tả để sửa. Sau đó Export .json và commit để đăng.",
     orderPlaced: "Đã đặt món — cảm ơn bạn!", orderFailed: "Không gửi được đơn. Vui lòng thử lại.",
     orderUnavailable: "Tính năng đặt món trực tuyến chưa sẵn sàng.", placing: "Đang gửi…",
@@ -543,7 +545,10 @@ createApp({
     </main>
 
     <!-- ===== Footer ===== -->
-    <footer class="text-center text-mocha-400 text-xs py-6">{{ cafe.name }} · {{ t('footer') }}</footer>
+    <footer class="text-center text-mocha-400 text-xs py-6 space-y-1">
+      <div>{{ cafe.name }} · {{ t('footer') }}</div>
+      <div class="text-mocha-300">© {{ new Date().getFullYear() }} {{ cafe.name }}. {{ t('rights') }}</div>
+    </footer>
 
     <!-- ===== Floating order bar ===== -->
     <transition name="fade">

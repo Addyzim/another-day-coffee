@@ -16,3 +16,18 @@ Thumbs.db
 
 # Temp Excel lock files
 ~$*.xlsx
+
+# Secrets / credentials — NEVER commit these
+.env
+.env.*
+*.env
+secrets.*
+*secret*
+*password*
+*.pem
+*.key
+*-key.json
+serviceAccount*.json
+*credentials*.json
+google-services.json
+firebase-adminsdk*.json
