@@ -374,7 +374,7 @@ createApp({
 
     <!-- ===== Header ===== -->
     <header class="sticky top-0 z-30 glass-header">
-      <div class="h-16 px-4 flex items-center gap-2">
+      <div class="h-16 px-4 sm:px-6 flex items-center gap-2 w-full max-w-[1600px] mx-auto">
         <button @click="openDrawer" aria-label="Menu"
                 class="pill shrink-0 w-10 h-10 grid place-items-center rounded-full text-mocha-500 hover:bg-white/60">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -432,7 +432,7 @@ createApp({
     </transition>
 
     <!-- ===== Main ===== -->
-    <main class="flex-1 w-full">
+    <main class="flex-1 w-full max-w-[1600px] mx-auto">
       <transition name="swap" mode="out-in" appear>
 
         <!-- ----- MENU ----- -->
@@ -461,7 +461,7 @@ createApp({
                 <h2 v-if="activeCategory === 'All'"
                     class="font-display text-lg font-semibold text-mocha-500 mb-2 px-1">{{ catLabel(g.category) }}</h2>
 
-                <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                   <article v-for="item in g.items" :key="item.id"
                            @click="openItem(item)"
                            class="card glass rounded-2xl p-4 flex items-center gap-3 shadow-sm shadow-mocha-300/20 cursor-pointer"
