@@ -60,7 +60,7 @@ const STRINGS = {
     send: "Place order", viewOrder: "View order", items: "items", item: "item",
     total: "Total", emptyCart: "Your order is empty.", tablePh: "e.g. 5",
     notePh: "Any special requests?", footer: "See you another day",
-    rights: "All rights reserved.",
+    rights: "All rights reserved.", more: "Show more", less: "Show less",
     editHint: "Tap any name, price, or description to edit. Then Export .json and commit it to publish.",
     orderPlaced: "Order placed — thank you!", orderFailed: "Couldn't place the order. Please try again.",
     orderUnavailable: "Online ordering isn't available yet.", placing: "Placing…",
@@ -75,7 +75,7 @@ const STRINGS = {
     send: "Đặt món", viewOrder: "Xem đơn", items: "món", item: "món",
     total: "Tổng", emptyCart: "Đơn của bạn đang trống.", tablePh: "vd. 5",
     notePh: "Yêu cầu đặc biệt?", footer: "Hẹn gặp lại ngày mai",
-    rights: "Bảo lưu mọi quyền.",
+    rights: "Bảo lưu mọi quyền.", more: "Xem thêm", less: "Thu gọn",
     editHint: "Chạm vào tên, giá hoặc mô tả để sửa. Sau đó Export .json và commit để đăng.",
     orderPlaced: "Đã đặt món — cảm ơn bạn!", orderFailed: "Không gửi được đơn. Vui lòng thử lại.",
     orderUnavailable: "Tính năng đặt món trực tuyến chưa sẵn sàng.", placing: "Đang gửi…",
@@ -103,6 +103,7 @@ createApp({
       lang: "en",
       view: "menu",
       drawerOpen: false,
+      expandedAbout: {},   // highlight index -> expanded
 
       items: [],
       activeCategory: "All",
@@ -499,14 +500,17 @@ createApp({
           <div class="glass rounded-2xl p-5 space-y-3 shadow-sm shadow-mocha-300/20">
             <p v-for="(p, i) in L(cafe.about)" :key="i" class="text-sm text-mocha-500 leading-relaxed">{{ p }}</p>
           </div>
-          <div class="grid grid-cols-1 gap-3">
-            <div v-for="(h, i) in cafe.highlights" :key="i" class="card glass rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-mocha-300/20">
-              <span class="shrink-0 w-11 h-11 grid place-items-center rounded-full bg-sage-200 text-mocha-600">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div v-for="(h, i) in cafe.highlights" :key="i"
+                 @click="expandedAbout[i] = !expandedAbout[i]"
+                 class="card glass rounded-2xl p-4 flex items-start gap-4 shadow-sm shadow-mocha-300/20 cursor-pointer">
+              <span class="shrink-0 w-11 h-11 grid place-items-center rounded-full bg-sage-200 text-mocha-600 mt-0.5">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path :d="h.icon"/></svg>
               </span>
-              <div>
+              <div class="min-w-0 flex-1">
                 <h3 class="font-display text-base font-medium text-mocha-600">{{ L(h.title) }}</h3>
-                <p class="text-sm text-mocha-400 leading-relaxed">{{ L(h.text) }}</p>
+                <p class="text-sm text-mocha-400 leading-relaxed break-words" :class="expandedAbout[i] ? '' : 'line-clamp-2'">{{ L(h.text) }}</p>
+                <span class="text-xs font-medium text-mocha-300 mt-1 inline-block">{{ expandedAbout[i] ? t('less') : t('more') }}</span>
               </div>
             </div>
           </div>
