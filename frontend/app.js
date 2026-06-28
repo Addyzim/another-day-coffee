@@ -408,7 +408,7 @@ createApp({
 
     <!-- ===== Header ===== -->
     <header class="sticky top-0 z-30 glass-header">
-      <div class="h-16 px-3 grid grid-cols-[2.75rem_1fr_2.75rem] items-center">
+      <div class="h-16 px-5 grid grid-cols-[2.75rem_1fr_2.75rem] items-center gap-2">
         <button @click="openDrawer" aria-label="Menu"
                 class="pill w-11 h-11 grid place-items-center rounded-full text-mocha-500 hover:bg-white/60">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -483,8 +483,8 @@ createApp({
       <transition name="swap" mode="out-in" appear>
 
         <!-- ----- MENU ----- -->
-        <section v-if="view === 'menu'" key="menu" class="px-4 py-5">
-          <div class="-mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory pb-1">
+        <section v-if="view === 'menu'" key="menu" class="px-5 py-5">
+          <div class="-mr-5 pr-5 flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory pb-1">
             <button v-for="cat in categories" :key="cat" @click="activeCategory = cat" @pointerdown="coffeePour"
                     class="pill shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
                     :style="{ scrollSnapAlign: 'start' }"
@@ -549,7 +549,7 @@ createApp({
         </section>
 
         <!-- ----- ABOUT ----- -->
-        <section v-else-if="view === 'about'" key="about" class="px-4 py-6 space-y-4">
+        <section v-else-if="view === 'about'" key="about" class="px-5 py-6 space-y-4">
           <h2 class="font-display text-2xl font-semibold text-mocha-600 px-1">{{ t('about') }}</h2>
           <div class="glass rounded-2xl p-5 space-y-3 shadow-sm shadow-mocha-300/20">
             <p v-for="(p, i) in L(cafe.about)" :key="i" class="text-sm text-mocha-500 leading-relaxed">{{ p }}</p>
@@ -568,7 +568,7 @@ createApp({
         </section>
 
         <!-- ----- CONTACT ----- -->
-        <section v-else key="contact" class="px-4 py-6 space-y-4">
+        <section v-else key="contact" class="px-5 py-6 space-y-4">
           <h2 class="font-display text-2xl font-semibold text-mocha-600 px-1">{{ t('contact') }}</h2>
           <div class="glass rounded-2xl p-5 space-y-4 shadow-sm shadow-mocha-300/20">
             <div class="flex items-start gap-3">
