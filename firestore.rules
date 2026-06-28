@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /orders/{id} {
+      // Anyone can place a well-formed order...
+      allow create: if request.resource.data.status == 'open'
+                    && request.resource.data.total is number
+                    && request.resource.data.total >= 0
+                    && request.resource.data.total < 100000000
+                    && request.resource.data.items is list
+                    && request.resource.data.items.size() <= 100;
+      // ...but only signed-in staff can read or change them.
+      allow read, update, delete: if request.auth != null;
+    }
+    // Lock everything else down by default.
+    match /{document=**} { allow read, write: if false; }
+  }
+}
