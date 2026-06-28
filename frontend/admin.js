@@ -60,6 +60,22 @@ createApp({
       this.user = u;
       if (u) { this.subscribeOrders(); this.subscribeMenu(); }
     });
+    // Browsers block audio until the user interacts with the page. Create one
+    // shared AudioContext and unlock it on the first click/keypress so the
+    // new-order chime can actually play later (it fires from a Firestore
+    // callback, which is NOT a user gesture and would stay suspended).
+    const unlock = () => {
+      try {
+        if (!this._audioCtx) this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (this._audioCtx.state === "suspended") this._audioCtx.resume();
+      } catch (e) {}
+      if (this._audioCtx && this._audioCtx.state === "running") {
+        window.removeEventListener("pointerdown", unlock);
+        window.removeEventListener("keydown", unlock);
+      }
+    };
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
   },
 
   methods: {
@@ -101,14 +117,22 @@ createApp({
       setTimeout(() => (document.title = orig), 4000);
       if (!this.soundOn) return;
       try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const o = ctx.createOscillator(), g = ctx.createGain();
-        o.connect(g); g.connect(ctx.destination);
-        o.type = "sine"; o.frequency.value = 880;
-        g.gain.setValueAtTime(0.001, ctx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-        o.start(); o.stop(ctx.currentTime + 0.5);
+        if (!this._audioCtx) this._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx = this._audioCtx;
+        if (ctx.state === "suspended") ctx.resume();
+        // Two short beeps so it's noticeable in a busy café.
+        const beep = (start, freq) => {
+          const o = ctx.createOscillator(), g = ctx.createGain();
+          o.connect(g); g.connect(ctx.destination);
+          o.type = "sine"; o.frequency.value = freq;
+          g.gain.setValueAtTime(0.001, start);
+          g.gain.exponentialRampToValueAtTime(0.4, start + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.001, start + 0.45);
+          o.start(start); o.stop(start + 0.45);
+        };
+        const t0 = ctx.currentTime;
+        beep(t0, 880);
+        beep(t0 + 0.25, 1175);
       } catch (e) {}
     },
     toggle(id) { this.expanded[id] = !this.expanded[id]; },
