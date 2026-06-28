@@ -228,10 +228,50 @@ createApp({
     openCart() { this.cartOpen = true; document.body.style.overflow = "hidden"; },
     closeCart() { this.cartOpen = false; document.body.style.overflow = ""; },
 
+    // Firestore handle, or null when Firebase isn't configured.
+    db() {
+      if (this._db !== undefined) return this._db;
+      const cfg = window.FIREBASE_CONFIG;
+      try {
+        if (cfg && cfg.projectId && window.firebase) {
+          if (!firebase.apps.length) firebase.initializeApp(cfg);
+          this._db = firebase.firestore();
+        } else {
+          this._db = null;
+        }
+      } catch (e) {
+        console.error(e);
+        this._db = null;
+      }
+      return this._db;
+    },
+
     sendOrder() {
       if (!this.cartCount) return;
+
+      // Save the order to the live admin dashboard (if Firebase is configured).
+      const db = this.db();
+      if (db) {
+        db.collection("orders").add({
+          cafe: this.cafe.name,
+          table: this.tableNo || "",
+          note: this.note || "",
+          total: this.cartTotal,
+          status: "open",
+          items: this.cartLines.map((l) => ({
+            name: l.name, name_vi: l.name_vi || "", qty: l.qty, price: l.price,
+          })),
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        }).catch((e) => console.error("order save failed", e));
+      }
+
+      // Also open WhatsApp with the order pre-filled for the manager.
       const num = (this.cafe.whatsapp || "").replace(/[^0-9]/g, "");
-      if (!num) { this.showToast(this.t("noWa")); return; }
+      if (!num) {
+        this.showToast(db ? "Order sent" : this.t("noWa"));
+        if (db) { this.cart = {}; this.tableNo = ""; this.note = ""; this.closeCart(); }
+        return;
+      }
       const lines = this.cartLines
         .map((l) => `• ${l.qty}× ${this.nameOf(l)} — ${this.money(l.price * l.qty)}`)
         .join("\n");

@@ -14,6 +14,34 @@ Hosted **100% free on GitHub Pages**.
 - About / Contacts copy uses `{ en, vi }` fields; menu items support `name_vi`
   and `category_vi` columns for the Vietnamese names.
 
+## Order dashboard (Firebase)
+
+Live order notifications + an admin dashboard at **`/admin.html`**. Optional —
+without it, orders still go to WhatsApp.
+
+1. Create a free project at <https://console.firebase.google.com>.
+2. Add a **Web app** (`</>`) and paste its config into `frontend/firebase-config.js`.
+3. **Build → Firestore Database → Create database** (production mode).
+4. **Build → Authentication → Sign-in method →** enable **Email/Password**, then
+   **Users → Add user** to create your admin login.
+5. In **Firestore → Rules**, paste:
+
+   ```
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /orders/{id} {
+         allow create: if request.resource.data.status == 'open'
+                       && request.resource.data.total is number;
+         allow read, update, delete: if request.auth != null;
+       }
+     }
+   }
+   ```
+
+   Anyone can place an order; only signed-in staff can read/close them.
+6. Open `/admin.html`, sign in, and watch orders arrive live (with a chime).
+
 ```
 Cafeteria Site/
 ├── frontend/              <- this folder is what GitHub Pages serves

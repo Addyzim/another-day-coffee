@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orders · Another Day Coffee</title>
+
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = { theme: { extend: {
+      fontFamily: { display: ['Fraunces','Georgia','serif'], sans: ['Inter','system-ui','sans-serif'] },
+      colors: { mocha: { 300:'#b08a6a', 400:'#8c6a4b', 500:'#6f4d33', 600:'#43301f' },
+                sage: { 200:'#d3e2c6', 300:'#bcd0aa' } },
+    } } };
+  </script>
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; background: #f3f1ee; }
+    .font-display { font-family: 'Fraunces', Georgia, serif; }
+    @keyframes pop { from { transform: scale(.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .pop { animation: pop .25s ease both; }
+  </style>
+</head>
+<body class="text-mocha-600 antialiased">
+  <div id="admin"></div>
+  <script src="admin.js"></script>
+</body>
+</html>
