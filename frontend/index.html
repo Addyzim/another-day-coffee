@@ -181,57 +181,8 @@
     .pill { position: relative; overflow: hidden; transition: background-color .3s ease, color .3s ease, transform .2s ease, box-shadow .3s ease; }
     .pill:active { transform: scale(.94); }
 
-    /* --- Liquid (coffee) effects ---------------------------------------- */
-    /* On click, a coffee overlay pours in from the top, fills the button,
-       then fades. Added to buttons from JS (coffeePour). */
-    .pour { position: absolute; inset: 0; z-index: -1; border-radius: inherit; pointer-events: none;
-            background: linear-gradient(to bottom, #6f4d33, #2e1d10);
-            animation: pourFill .62s cubic-bezier(.4,.7,.35,1) forwards; }
-    @keyframes pourFill {
-      0%   { clip-path: inset(0 0 100% 0); opacity: .96; }
-      60%  { clip-path: inset(0 0 0 0);    opacity: .96; }
-      100% { clip-path: inset(0 0 0 0);    opacity: 0; }
-    }
-
-    /* Subtle scale pop when a tab becomes active (keeps the pill shape). */
-    .is-active { animation: tabPop .45s cubic-bezier(.22,.61,.36,1); }
-    @keyframes tabPop { 0% { transform: scale(.93); } 55% { transform: scale(1.05); } 100% { transform: scale(1); } }
-
-    /* Active "tab" looks like a pot of coffee: a dark liquid body with a
-       lighter crema surface on top. --tilt is driven by the accelerometer
-       (with a gentle idle sway fallback) so the surface stays level as you
-       tilt the phone. Pseudo-elements sit behind the label (negative z-index). */
-    .coffee { position: relative; }
-    .coffee::before {
-      content: ''; position: absolute; inset: -50%; z-index: -2;
-      background: linear-gradient(to bottom, #6f4d33 0%, #543824 32%, #321f11 82%);
-      transform: rotate(var(--tilt, 0deg));
-      transform-origin: 50% 55%;
-    }
-    .coffee::after {
-      content: ''; position: absolute; left: -50%; right: -50%; top: 20%; height: 14px; z-index: -1;
-      pointer-events: none;
-      background:
-        linear-gradient(120deg, transparent 42%, rgba(255,255,255,.4) 50%, transparent 58%),
-        linear-gradient(to bottom, rgba(214,178,140,.95), rgba(214,178,140,.2) 55%, transparent);
-      background-size: 220% 100%, 100% 100%;
-      transform: rotate(var(--tilt, 0deg));
-      transform-origin: 50% 55%;
-      animation: surfaceSheen 3.2s linear infinite;
-    }
-    @keyframes surfaceSheen {
-      from { background-position: 120% 0, 0 0; }
-      to   { background-position: -120% 0, 0 0; }
-    }
-
-    /* A selected (in-cart) card gets a watery ring + slow liquid sheen. */
-    .selected-liquid { box-shadow: 0 0 0 2px rgba(163,186,140,.6), 0 12px 26px -14px rgba(136,93,57,.35); }
-    .selected-liquid::after {
-      content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-      background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.45) 50%, transparent 65%);
-      background-size: 220% 100%; animation: sheen 2.8s linear infinite;
-    }
-    @keyframes sheen { to { background-position: -220% 0; } }
+    /* A selected (in-cart) card gets a clean coffee-toned ring. */
+    .selected-liquid { box-shadow: 0 0 0 2px rgba(111,77,51,.55), 0 12px 26px -14px rgba(67,48,31,.3); }
 
     /* Hide the horizontal scrollbar on the category pill row */
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -242,8 +193,7 @@
     [contenteditable="true"]:focus { background: rgba(255,255,255,.6); border-radius: 6px; }
 
     @media (prefers-reduced-motion: reduce) {
-      .blob, .card, .pill, .koi, .reed, .pour, .is-active { animation: none !important; transition: none !important; }
-      .selected-liquid::after, .coffee::after { animation: none !important; }
+      .blob, .card, .pill, .koi, .reed { animation: none !important; transition: none !important; }
     }
   </style>
 </head>

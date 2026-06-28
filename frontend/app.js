@@ -154,13 +154,6 @@ createApp({
     this.applyHash();
     window.addEventListener("hashchange", this.applyHash);
     this.fetchItems();
-
-    // Liquid surface tilt: start the loop, enable the sensor (Android now,
-    // iOS on the first tap which counts as the required user gesture).
-    this.startTilt();
-    this.enableMotion();
-    const once = () => { this._gesture = true; this.enableMotion(); window.removeEventListener("pointerdown", once); };
-    window.addEventListener("pointerdown", once, { once: true });
   },
 
   methods: {
@@ -204,57 +197,6 @@ createApp({
       this._toastTimer = setTimeout(() => (this.toast = ""), 2200);
     },
 
-    // On click, pour a coffee fill into the button from the top.
-    coffeePour(e) {
-      const btn = e.currentTarget;
-      if (!btn) return;
-      const old = btn.getElementsByClassName("pour")[0];
-      if (old) old.remove();
-      const span = document.createElement("span");
-      span.className = "pour";
-      btn.appendChild(span);
-      setTimeout(() => span.remove(), 650);
-    },
-
-    // ----- accelerometer: keep the coffee surface level as the phone tilts --
-    startTilt() {
-      this._tilt = 0;
-      this._sensorTilt = 0;
-      this._hasSensor = false;
-      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const loop = (ts) => {
-        if (this._hasSensor) {
-          this._tilt += (this._sensorTilt - this._tilt) * 0.12;        // smooth toward sensor
-        } else if (!reduce) {
-          this._tilt = 5 * Math.sin(ts / 950);                          // gentle idle sway
-        }
-        document.documentElement.style.setProperty("--tilt", this._tilt.toFixed(2) + "deg");
-        this._raf = requestAnimationFrame(loop);
-      };
-      this._raf = requestAnimationFrame(loop);
-    },
-    onOrient(e) {
-      if (e.gamma == null && e.beta == null) return;
-      this._hasSensor = true;
-      // Counter-rotate by the left/right tilt so the surface stays level.
-      const g = e.gamma || 0;
-      this._sensorTilt = Math.max(-16, Math.min(16, -g * 0.55));
-    },
-    enableMotion() {
-      const DOE = window.DeviceOrientationEvent;
-      if (!DOE) return;
-      if (typeof DOE.requestPermission === "function") {
-        // iOS: must be triggered by a user gesture.
-        if (!this._gesture || this._motionInit) return;
-        this._motionInit = true;
-        DOE.requestPermission()
-          .then((s) => { if (s === "granted") window.addEventListener("deviceorientation", this.onOrient); })
-          .catch(() => {});
-      } else if (!this._motionInit) {
-        this._motionInit = true;
-        window.addEventListener("deviceorientation", this.onOrient);
-      }
-    },
 
     // ----- language --------------------------------------------------------
     detectLang() {
@@ -446,17 +388,17 @@ createApp({
         <!-- Language selector -->
         <div class="px-4 pt-4">
           <div class="flex gap-1 p-1 glass rounded-full text-sm">
-            <button @click="setLang('en')" @pointerdown="coffeePour" class="pill flex-1 rounded-full py-1.5 font-medium"
-                    :class="lang === 'en' ? 'bg-mocha-500 text-white coffee' : 'text-mocha-500'">English</button>
-            <button @click="setLang('vi')" @pointerdown="coffeePour" class="pill flex-1 rounded-full py-1.5 font-medium"
-                    :class="lang === 'vi' ? 'bg-mocha-500 text-white coffee' : 'text-mocha-500'">Tiếng Việt</button>
+            <button @click="setLang('en')" class="pill flex-1 rounded-full py-1.5 font-medium"
+                    :class="lang === 'en' ? 'bg-mocha-500 text-white' : 'text-mocha-500'">English</button>
+            <button @click="setLang('vi')" class="pill flex-1 rounded-full py-1.5 font-medium"
+                    :class="lang === 'vi' ? 'bg-mocha-500 text-white' : 'text-mocha-500'">Tiếng Việt</button>
           </div>
         </div>
 
         <nav class="flex-1 p-3 pt-4 space-y-1">
-          <button v-for="n in nav" :key="n.key" @click="go(n.key)" @pointerdown="coffeePour"
+          <button v-for="n in nav" :key="n.key" @click="go(n.key)"
                   class="pill w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left font-medium"
-                  :class="view === n.key ? 'bg-mocha-500 text-white shadow-sm shadow-mocha-300/40 coffee' : 'text-mocha-500 hover:bg-white/60'">
+                  :class="view === n.key ? 'bg-mocha-500 text-white shadow-sm shadow-mocha-300/40' : 'text-mocha-500 hover:bg-white/60'">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path :d="n.icon"/></svg>
             {{ t(n.key) }}
@@ -485,10 +427,10 @@ createApp({
         <!-- ----- MENU ----- -->
         <section v-if="view === 'menu'" key="menu" class="px-5 py-5">
           <div class="-mr-5 pr-5 flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory pb-1">
-            <button v-for="cat in categories" :key="cat" @click="activeCategory = cat" @pointerdown="coffeePour"
+            <button v-for="cat in categories" :key="cat" @click="activeCategory = cat"
                     class="pill shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
                     :style="{ scrollSnapAlign: 'start' }"
-                    :class="activeCategory === cat ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40 is-active coffee' : 'glass text-mocha-500 hover:bg-white/70'">
+                    :class="activeCategory === cat ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40' : 'glass text-mocha-500 hover:bg-white/70'">
               {{ catLabel(cat) }}
             </button>
           </div>
@@ -532,7 +474,7 @@ createApp({
                         :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
                         @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
                   <div v-if="!isAdmin" class="mt-auto">
-                    <button v-if="!cart[item.id]" @click="addToCart(item)" @pointerdown="coffeePour"
+                    <button v-if="!cart[item.id]" @click="addToCart(item)"
                             class="pill text-xs font-semibold px-3.5 py-1.5 rounded-full bg-mocha-500 text-white hover:bg-mocha-600">+ {{ t('add') }}</button>
                     <div v-else class="flex items-center gap-1.5 glass rounded-full p-1">
                       <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white/70 text-mocha-600 text-lg leading-none">−</button>
@@ -593,7 +535,7 @@ createApp({
             </div>
           </div>
 
-          <a :href="cafe.contact.mapsUrl" target="_blank" rel="noopener" @pointerdown="coffeePour"
+          <a :href="cafe.contact.mapsUrl" target="_blank" rel="noopener"
              class="pill block text-center bg-mocha-500 text-white font-semibold rounded-2xl py-3.5 shadow-md shadow-mocha-300/40 hover:bg-mocha-600">{{ t('openMaps') }}</a>
         </section>
       </transition>
@@ -661,7 +603,7 @@ createApp({
                 <span class="font-display text-xl font-semibold text-mocha-600">{{ money(cartTotal) }}</span>
               </div>
 
-              <button @click="sendOrder" @pointerdown="coffeePour"
+              <button @click="sendOrder"
                       class="pill w-full flex items-center justify-center gap-2 bg-mocha-500 text-white font-semibold rounded-2xl py-3.5 shadow-md shadow-mocha-300/40 hover:bg-mocha-600">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.4 5 5.1-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.6-6c-.3-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.5 6.5 0 01-1.9-1.2 7.2 7.2 0 01-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.6-1.4-.8-1.9s-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2A5.2 5.2 0 009 12.3 11.7 11.7 0 0013.5 16c.6.3 1.1.4 1.5.5a3.6 3.6 0 001.6.1c.5-.1 1.5-.6 1.7-1.2s.2-1.1.2-1.2-.2-.2-.4-.2z"/></svg>
                 {{ t('send') }}
