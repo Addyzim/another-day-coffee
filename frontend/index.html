@@ -170,11 +170,12 @@
     <div class="orb orb-5"></div>
   </div>
 
-  <!-- The whole app is constrained to a phone-width column and centered. -->
-  <div id="app" class="relative z-10 mx-auto max-w-md md:max-w-4xl xl:max-w-6xl min-h-screen"></div>
+  <!-- Full-width app shell; individual sections cap their own width where it
+       helps readability (About / Contacts). The menu uses the full width. -->
+  <div id="app" class="relative z-10 w-full min-h-screen"></div>
 
   <!-- Mount point template lives in app.js. The ?v= is bumped on each deploy
        so browsers always fetch the latest version instead of a cached copy. -->
-  <script src="app.js?v=20260629g"></script>
+  <script src="app.js?v=20260629h"></script>
 </body>
 </html>
