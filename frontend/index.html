@@ -72,12 +72,27 @@
        it sits quietly behind the frosted cards. */
     .ambient { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
 
-    .blob { position: absolute; border-radius: 9999px; filter: blur(90px); opacity: 0.22; }
-    .blob-1 { width: 340px; height: 340px; background: #eaded0; top: -100px; left: -100px; }
-    .blob-2 { width: 300px; height: 300px; background: #e6ddd4; bottom: -90px; right: -90px; }
+    /* A faint warm pool for depth. */
+    .blob { position: absolute; border-radius: 9999px; filter: blur(95px); opacity: 0.18; }
+    .blob-1 { width: 340px; height: 340px; background: #ead9c7; top: -110px; left: -100px; }
 
-    /* Soft rising steam, barely there. */
-    .steam { position: absolute; inset: 0; opacity: 0.045; filter: blur(0.5px); }
+    /* Steam texture: soft blurred white columns that slowly rise and fade. */
+    .wisp {
+      position: absolute; bottom: -15%; border-radius: 50%;
+      background: radial-gradient(closest-side, rgba(255,255,255,0.9), rgba(255,255,255,0));
+      filter: blur(22px); opacity: 0;
+      animation: steamRise 18s ease-in-out infinite;
+    }
+    .wisp-1 { width: 170px; height: 430px; left: 6%;  animation-duration: 17s; animation-delay: -2s; }
+    .wisp-2 { width: 230px; height: 500px; left: 37%; animation-duration: 23s; animation-delay: -9s; }
+    .wisp-3 { width: 160px; height: 400px; left: 66%; animation-duration: 19s; animation-delay: -5s; }
+    .wisp-4 { width: 130px; height: 360px; left: 86%; animation-duration: 21s; animation-delay: -13s; }
+    @keyframes steamRise {
+      0%   { transform: translateY(12%) translateX(0) scaleX(1);     opacity: 0; }
+      25%  { opacity: 0.5; }
+      60%  { opacity: 0.38; }
+      100% { transform: translateY(-48%) translateX(14px) scaleX(1.3); opacity: 0; }
+    }
 
     /* --- Frosted glass ---------------------------------------------------- */
     .glass {
@@ -152,31 +167,20 @@
     [contenteditable="true"]:focus { background: rgba(255,255,255,.6); border-radius: 6px; }
 
     @media (prefers-reduced-motion: reduce) {
-      .blob, .card, .pill { animation: none !important; transition: none !important; }
+      .blob, .card, .pill, .wisp { animation: none !important; transition: none !important; }
+      .wisp { opacity: 0.28; }
     }
   </style>
 </head>
 
 <body class="text-mocha-600 antialiased">
-  <!-- Ambient coffee background, fixed behind everything -->
+  <!-- Ambient steam texture, fixed behind everything -->
   <div class="ambient" aria-hidden="true">
     <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-
-    <!-- Faint rising-steam pattern (drifts slowly upward) -->
-    <svg class="steam" width="100%" height="100%">
-      <defs>
-        <pattern id="steamTile" width="170" height="260" patternUnits="userSpaceOnUse">
-          <g fill="none" stroke="#8c6a4b" stroke-linecap="round">
-            <path d="M44,270 C 64,228 24,196 44,154 C 64,112 24,82 44,40" stroke-width="3"/>
-            <path d="M120,270 C 138,232 106,204 120,166 C 134,128 108,102 120,64" stroke-width="2.6"/>
-          </g>
-          <animateTransform attributeName="patternTransform" type="translate"
-                            from="0 0" to="0 -260" dur="18s" repeatCount="indefinite"/>
-        </pattern>
-      </defs>
-      <rect width="100%" height="100%" fill="url(#steamTile)"/>
-    </svg>
+    <div class="wisp wisp-1"></div>
+    <div class="wisp wisp-2"></div>
+    <div class="wisp wisp-3"></div>
+    <div class="wisp wisp-4"></div>
   </div>
 
   <!-- The whole app is constrained to a phone-width column and centered. -->
