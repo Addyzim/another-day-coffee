@@ -54,7 +54,13 @@ createApp({
     if (!firebase.apps.length) firebase.initializeApp(cfg);
     this.auth = firebase.auth();
     this.db = firebase.firestore();
-    try { this.storage = firebase.storage(); } catch (e) { this.storage = null; }
+    try {
+      this.storage = firebase.storage();
+      // Fail fast instead of silently retrying for ~10 min when uploads are
+      // blocked (Storage not enabled, wrong bucket, or missing CORS).
+      this.storage.setMaxUploadRetryTime(20000);
+      this.storage.setMaxOperationRetryTime(20000);
+    } catch (e) { this.storage = null; }
     this.auth.onAuthStateChanged((u) => {
       this.user = u;
       if (u) { this.subscribeOrders(); this.subscribeMenu(); }
@@ -170,7 +176,11 @@ createApp({
           (s) => { this.uploadPct = Math.round((s.bytesTransferred / s.totalBytes) * 100); },
           rej, res));
         this.editing.image = await ref.getDownloadURL();
-      } catch (err) { alert("Upload failed: " + err.message); }
+      } catch (err) {
+        console.error("Storage upload failed:", err);
+        alert("Upload failed [" + (err.code || "unknown") + "]: " + err.message +
+              "\n\nbucket: " + (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.storageBucket));
+      }
       finally { this.uploading = false; e.target.value = ""; }
     },
     async seedFromJson() {
