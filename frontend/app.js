@@ -277,41 +277,45 @@ createApp({
         </button>
       </div>
 
-      <div v-else-if="filteredItems.length === 0" class="text-center text-mocha-400 py-20">
-        Nothing here yet — check another category.
-      </div>
+      <!-- Category swap: the whole list cross-fades as one block (out-in),
+           then cards stagger in. Keyed by category so a switch re-triggers it. -->
+      <transition v-else name="swap" mode="out-in">
+        <div :key="activeCategory" class="space-y-3">
 
-      <!-- Menu cards (staggered entrance + smooth filtering) -->
-      <transition-group v-else name="list" tag="div" class="relative space-y-3">
-        <article
-          v-for="(item, i) in filteredItems"
-          :key="item.id"
-          class="card rise glass rounded-2xl p-4 flex justify-between gap-4 shadow-sm shadow-mocha-300/20"
-          :style="{ animationDelay: (i * 45) + 'ms' }">
-          <div class="min-w-0 flex-1">
-            <span class="inline-block text-[10px] uppercase tracking-widest font-semibold text-mocha-400 mb-1.5">
-              {{ item.category }}
-            </span>
-            <h2
-              class="font-display text-lg font-medium text-mocha-600 leading-snug outline-none"
-              :contenteditable="isAdmin"
-              :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-              @blur="saveField(item, 'name', $event)">{{ item.name }}</h2>
-            <p
-              class="text-sm text-mocha-400 mt-1 leading-relaxed outline-none"
-              :contenteditable="isAdmin"
-              :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-              @blur="saveField(item, 'description', $event)">{{ item.description }}</p>
+          <div v-if="filteredItems.length === 0" class="text-center text-mocha-400 py-20">
+            Nothing here yet — check another category.
           </div>
-          <div class="shrink-0 text-right self-center">
-            <span
-              class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap outline-none"
-              :contenteditable="isAdmin"
-              :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-              @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
-          </div>
-        </article>
-      </transition-group>
+
+          <article
+            v-for="(item, i) in filteredItems"
+            :key="item.id"
+            class="card rise glass rounded-2xl p-4 flex justify-between gap-4 shadow-sm shadow-mocha-300/20"
+            :style="{ animationDelay: (i * 45) + 'ms' }">
+            <div class="min-w-0 flex-1">
+              <span class="inline-block text-[10px] uppercase tracking-widest font-semibold text-mocha-400 mb-1.5">
+                {{ item.category }}
+              </span>
+              <h2
+                class="font-display text-lg font-medium text-mocha-600 leading-snug outline-none"
+                :contenteditable="isAdmin"
+                :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
+                @blur="saveField(item, 'name', $event)">{{ item.name }}</h2>
+              <p
+                class="text-sm text-mocha-400 mt-1 leading-relaxed outline-none"
+                :contenteditable="isAdmin"
+                :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
+                @blur="saveField(item, 'description', $event)">{{ item.description }}</p>
+            </div>
+            <div class="shrink-0 text-right self-center">
+              <span
+                class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap outline-none"
+                :contenteditable="isAdmin"
+                :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
+                @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
+            </div>
+          </article>
+        </div>
+      </transition>
     </main>
 
     <!-- Footer -->

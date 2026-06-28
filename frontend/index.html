@@ -93,12 +93,12 @@
     }
     .rise { animation: rise .5s cubic-bezier(.22,.61,.36,1) both; }
 
-    /* --- List transitions (filtering) ----------------------------------- */
-    .list-move        { transition: transform .4s cubic-bezier(.22,.61,.36,1); }
-    .list-enter-active{ transition: all .4s cubic-bezier(.22,.61,.36,1); }
-    .list-leave-active{ transition: all .25s ease; position: absolute; width: calc(100% - 2rem); }
-    .list-enter-from  { opacity: 0; transform: translateY(12px); }
-    .list-leave-to    { opacity: 0; transform: scale(.97); }
+    /* --- Category swap: cross-fade the whole list as one block ----------- */
+    /* Fading the list container (out-in) avoids the per-card overlap glitch;
+       the individual cards still stagger in via the `rise` animation. */
+    .swap-enter-active { transition: opacity .3s ease; }
+    .swap-leave-active { transition: opacity .2s ease; }
+    .swap-enter-from, .swap-leave-to { opacity: 0; }
 
     /* --- Toast fade ------------------------------------------------------ */
     .fade-enter-active, .fade-leave-active { transition: opacity .3s ease, transform .3s ease; }
