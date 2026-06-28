@@ -2,73 +2,219 @@
   "items": [
     {
       "id": 1,
-      "category": "Breakfast",
-      "name": "Avocado Toast",
-      "price": 75000,
-      "description": "Sourdough, smashed avocado, chili flakes"
+      "category": "Vietnamese Coffee",
+      "name": "Black Coffee",
+      "price": 20000,
+      "name_vi": "Cafe đen",
+      "category_vi": "Cà phê Việt"
     },
     {
       "id": 2,
-      "category": "Breakfast",
-      "name": "Greek Yogurt Bowl",
-      "price": 60000,
-      "description": "Yogurt, granola, honey, seasonal fruit"
+      "category": "Vietnamese Coffee",
+      "name": "Condensed Milk Coffee",
+      "price": 25000,
+      "name_vi": "Cafe sữa",
+      "category_vi": "Cà phê Việt"
     },
     {
       "id": 3,
-      "category": "Sandwiches",
-      "name": "Turkey Club",
-      "price": 95000,
-      "description": "Turkey, bacon, lettuce, tomato on ciabatta"
+      "category": "Vietnamese Coffee",
+      "name": "Sai Gon Condensed Milk Coffee",
+      "price": 30000,
+      "name_vi": "Cafe sữa đá Sài Gòn",
+      "category_vi": "Cà phê Việt"
     },
     {
       "id": 4,
-      "category": "Sandwiches",
-      "name": "Caprese Panini",
-      "price": 85000,
-      "description": "Mozzarella, tomato, basil, balsamic glaze"
+      "category": "Vietnamese Coffee",
+      "name": "Salt Coffee",
+      "price": 35000,
+      "name_vi": "Cafe muối",
+      "category_vi": "Cà phê Việt"
     },
     {
       "id": 5,
-      "category": "Salads",
-      "name": "Caesar Salad",
-      "price": 80000,
-      "description": "Romaine, parmesan, croutons, Caesar dressing"
+      "category": "Vietnamese Coffee",
+      "name": "White Coffee",
+      "price": 30000,
+      "name_vi": "Bạc xỉu",
+      "category_vi": "Cà phê Việt"
     },
     {
       "id": 6,
-      "category": "Salads",
-      "name": "Quinoa Power Bowl",
-      "price": 98000,
-      "description": "Quinoa, chickpeas, kale, lemon tahini"
+      "category": "Vietnamese Coffee",
+      "name": "Salt White Coffee",
+      "price": 35000,
+      "name_vi": "Bạc xỉu kem muối",
+      "category_vi": "Cà phê Việt"
     },
     {
       "id": 7,
-      "category": "Drinks",
-      "name": "Iced Latte",
+      "category": "Italian Coffee",
+      "name": "Espresso",
       "price": 45000,
-      "description": "Double espresso over ice with milk"
+      "name_vi": "Espresso",
+      "category_vi": "Cà phê Ý"
     },
     {
       "id": 8,
-      "category": "Drinks",
-      "name": "Fresh Lemonade",
-      "price": 35000,
-      "description": "House-made, lightly sweetened"
+      "category": "Italian Coffee",
+      "name": "Americano",
+      "price": 45000,
+      "name_vi": "Americano",
+      "category_vi": "Cà phê Ý"
     },
     {
       "id": 9,
-      "category": "Desserts",
-      "name": "Chocolate Brownie",
-      "price": 38000,
-      "description": "Fudgy, walnuts, sea salt"
+      "category": "Italian Coffee",
+      "name": "Cappuccino",
+      "price": 50000,
+      "name_vi": "Cappuccino",
+      "category_vi": "Cà phê Ý"
     },
     {
       "id": 10,
-      "category": "Desserts",
-      "name": "Fruit Tart",
+      "category": "Italian Coffee",
+      "name": "Latte",
+      "price": 50000,
+      "name_vi": "Latte",
+      "category_vi": "Cà phê Ý"
+    },
+    {
+      "id": 11,
+      "category": "Italian Coffee",
+      "name": "Flat White",
+      "price": 50000,
+      "name_vi": "Flat White",
+      "category_vi": "Cà phê Ý"
+    },
+    {
+      "id": 12,
+      "category": "Coldbrew",
+      "name": "Coldbrew Original",
+      "price": 40000,
+      "name_vi": "Truyền thống",
+      "category_vi": "Coldbrew"
+    },
+    {
+      "id": 13,
+      "category": "Coldbrew",
+      "name": "Sunshine",
       "price": 45000,
-      "description": "Pastry cream, glazed seasonal fruit"
+      "name_vi": "Nắng",
+      "category_vi": "Coldbrew"
+    },
+    {
+      "id": 14,
+      "category": "Coldbrew",
+      "name": "Lemon Coldbrew",
+      "price": 40000,
+      "name_vi": "Coldbrew chanh",
+      "category_vi": "Coldbrew"
+    },
+    {
+      "id": 15,
+      "category": "Coldbrew",
+      "name": "Orange Coldbrew",
+      "price": 40000,
+      "name_vi": "Coldbrew cam",
+      "category_vi": "Coldbrew"
+    },
+    {
+      "id": 16,
+      "category": "Refreshing",
+      "name": "Pomegranate Tea",
+      "price": 35000,
+      "name_vi": "Trà lựu",
+      "category_vi": "Giải khát"
+    },
+    {
+      "id": 17,
+      "category": "Refreshing",
+      "name": "Longan Tea",
+      "price": 35000,
+      "name_vi": "Trà long nhãn",
+      "category_vi": "Giải khát"
+    },
+    {
+      "id": 18,
+      "category": "Refreshing",
+      "name": "Hibiscus Tea",
+      "price": 35000,
+      "name_vi": "Trà atiso",
+      "category_vi": "Giải khát"
+    },
+    {
+      "id": 19,
+      "category": "Refreshing",
+      "name": "Orange Cinnamon Honey Tea",
+      "price": 35000,
+      "name_vi": "Trà cam quế mật ong",
+      "category_vi": "Giải khát"
+    },
+    {
+      "id": 20,
+      "category": "Other",
+      "name": "Hibiscus Lemon",
+      "price": 30000,
+      "name_vi": "Chanh atiso",
+      "category_vi": "Khác"
+    },
+    {
+      "id": 21,
+      "category": "Other",
+      "name": "Orange Juice",
+      "price": 30000,
+      "name_vi": "Cam",
+      "category_vi": "Khác"
+    },
+    {
+      "id": 22,
+      "category": "Other",
+      "name": "Choco Latte",
+      "price": 30000,
+      "name_vi": "Choco latte",
+      "category_vi": "Khác"
+    },
+    {
+      "id": 23,
+      "category": "Other",
+      "name": "Salt Chocolate",
+      "price": 35000,
+      "name_vi": "Choco latte kem muối",
+      "category_vi": "Khác"
+    },
+    {
+      "id": 24,
+      "category": "Other",
+      "name": "Iced Lemon Yogurt",
+      "price": 30000,
+      "name_vi": "Yogurt đá chanh",
+      "category_vi": "Khác"
+    },
+    {
+      "id": 25,
+      "category": "Other",
+      "name": "Peach Yogurt",
+      "price": 35000,
+      "name_vi": "Yogurt đào",
+      "category_vi": "Khác"
+    },
+    {
+      "id": 26,
+      "category": "Soft Drink",
+      "name": "Water",
+      "price": 10000,
+      "name_vi": "Nước suối",
+      "category_vi": "Nước ngọt"
+    },
+    {
+      "id": 27,
+      "category": "Soft Drink",
+      "name": "Coca Light",
+      "price": 20000,
+      "name_vi": "Coca Light",
+      "category_vi": "Nước ngọt"
     }
   ]
 }

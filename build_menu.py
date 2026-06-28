@@ -7,6 +7,12 @@ commit the regenerated `frontend/menu.json` to publish your changes.
 
     python build_menu.py
 
+Columns:
+  Required : id, category, name, price
+  Optional : name_vi, category_vi, description
+             (name_vi / category_vi power the EN/VI language selector — the
+              "name" / "category" columns are the English text.)
+
 (You can also edit the menu live in the browser's Admin mode and use the
 "Export menu.json" button there — this script is just the spreadsheet route.)
 """
@@ -20,40 +26,54 @@ HERE = os.path.dirname(__file__)
 EXCEL_PATH = os.path.join(HERE, "backend", "menu.xlsx")
 JSON_PATH = os.path.join(HERE, "frontend", "menu.json")
 
-COLUMNS = ["id", "category", "name", "price", "description"]
+REQUIRED = ["id", "category", "name", "price"]
+OPTIONAL = ["name_vi", "category_vi", "description"]
 
 
-def normalize(df: pd.DataFrame) -> pd.DataFrame:
-    """Coerce a raw spreadsheet into the canonical menu schema."""
+def normalize(df: pd.DataFrame) -> list[dict]:
+    """Coerce a raw spreadsheet into a clean list of menu records."""
     df = df.rename(columns={c: c.strip().lower() for c in df.columns})
-    missing = [c for c in COLUMNS if c not in df.columns]
+    missing = [c for c in REQUIRED if c not in df.columns]
     if missing:
         raise SystemExit(
             f"menu.xlsx is missing column(s): {', '.join(missing)}. "
-            f"Expected: {', '.join(COLUMNS)}."
+            f"Required: {', '.join(REQUIRED)}."
         )
-    df = df[COLUMNS].copy()
 
     df["id"] = pd.to_numeric(df["id"], errors="coerce")
     df = df.dropna(subset=["id"])
     df["id"] = df["id"].astype(int)
 
-    df["category"] = df["category"].fillna("Uncategorized").astype(str).str.strip()
-    df["name"] = df["name"].fillna("").astype(str).str.strip()
-    # Prices are Vietnamese Dong (VND) — whole numbers; strip any symbols/separators.
-    price_clean = df["price"].astype(str).str.replace(r"[^0-9]", "", regex=True)
-    df["price"] = pd.to_numeric(price_clean, errors="coerce").fillna(0).round(0).astype(int)
-    df["description"] = df["description"].fillna("").astype(str).str.strip()
+    records: list[dict] = []
+    seen = set()
+    for _, r in df.iterrows():
+        if r["id"] in seen:
+            continue
+        name = str(r.get("name", "")).strip()
+        if not name:
+            continue
+        seen.add(r["id"])
 
-    df = df[df["name"] != ""]
-    df = df.drop_duplicates(subset=["id"], keep="first")
-    return df.reset_index(drop=True)
+        # Prices are Vietnamese Dong (VND) — whole numbers; strip symbols.
+        price_raw = "".join(ch for ch in str(r.get("price", "")) if ch.isdigit())
+        rec = {
+            "id": int(r["id"]),
+            "category": str(r.get("category", "Uncategorized")).strip() or "Uncategorized",
+            "name": name,
+            "price": int(price_raw) if price_raw else 0,
+        }
+        for opt in OPTIONAL:
+            val = r.get(opt)
+            if val is not None and str(val).strip() and str(val).lower() != "nan":
+                rec[opt] = str(val).strip()
+        records.append(rec)
+
+    return records
 
 
 def main() -> None:
     df = pd.read_excel(EXCEL_PATH, engine="openpyxl")
-    df = normalize(df)
-    items = df.to_dict(orient="records")
+    items = normalize(df)
     with open(JSON_PATH, "w", encoding="utf-8") as f:
         json.dump({"items": items}, f, ensure_ascii=False, indent=2)
     print(f"Wrote {len(items)} items to {os.path.relpath(JSON_PATH, HERE)}")

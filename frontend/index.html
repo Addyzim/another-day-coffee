@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <meta name="theme-color" content="#efece8" />
-  <title>The Corner Café</title>
+  <title>Another Day Coffee</title>
 
   <!-- Vue 3 (global build, no build step needed) -->
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
@@ -69,8 +69,8 @@
     /* Koi: small, pale, slow. They mostly glide through the side margins and
        are blurred away where they pass behind cards. */
     .koi { position: absolute; top: 0; left: 0; will-change: transform; }
-    .koi-a { width: 116px; opacity: 0.42; animation: swimRight 62s linear infinite; }
-    .koi-b { width: 88px;  opacity: 0.34; animation: swimLeft 80s linear infinite; }
+    .koi-a { width: 112px; opacity: 0.30; animation: swimRight 64s linear infinite; }
+    .koi-b { width: 84px;  opacity: 0.24; animation: swimLeft 82s linear infinite; }
     @keyframes swimRight {
       0%   { transform: translate(-22vw, 16vh) rotate(5deg); }
       50%  { transform: translate(50vw, 9vh)  rotate(-4deg); }
@@ -145,8 +145,13 @@
     .overlay-enter-active, .overlay-leave-active { transition: opacity .3s ease; }
     .overlay-enter-from, .overlay-leave-to { opacity: 0; }
 
+    /* --- Bottom sheet (cart) -------------------------------------------- */
+    .sheet-enter-active, .sheet-leave-active { transition: transform .34s cubic-bezier(.22,.61,.36,1); }
+    .sheet-enter-from, .sheet-leave-to { transform: translateY(100%); }
+
     /* Crisp text rendering for a polished, modern feel */
     h1, h2, h3, .font-display { letter-spacing: -0.01em; }
+    input { font-family: inherit; }
 
     /* --- Pills ----------------------------------------------------------- */
     .pill { transition: background-color .3s ease, color .3s ease, transform .2s ease, box-shadow .3s ease; }

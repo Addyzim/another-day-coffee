@@ -1,8 +1,18 @@
-# The Corner Café — Menu Site
+# Another Day Coffee — Menu Site
 
-A lightweight, mobile-first café menu app. The menu is a single static
-JSON file — no database, no server, no build tools, no monthly bills. It is
-hosted **100% free on GitHub Pages**.
+A lightweight, mobile-first café menu app with EN/VI language switching, a
+WhatsApp table-ordering cart, and a hidden admin editor. The menu is a single
+static JSON file — no database, no server, no build tools, no monthly bills.
+Hosted **100% free on GitHub Pages**.
+
+## Configure (top of `frontend/app.js`, the `CAFE` object)
+
+- `CAFE.whatsapp` — manager's WhatsApp number, **digits only, international
+  format** (e.g. `"84905123456"`). Orders won't send until this is set.
+- `CAFE.logo` — path to a logo image, e.g. `"./logo.png"` (drop the file in
+  `frontend/`). Leave `""` for text-only.
+- About / Contacts copy uses `{ en, vi }` fields; menu items support `name_vi`
+  and `category_vi` columns for the Vietnamese names.
 
 ```
 Cafeteria Site/
