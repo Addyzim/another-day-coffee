@@ -5,6 +5,27 @@ WhatsApp table-ordering cart, and a hidden admin editor. The menu is a single
 static JSON file — no database, no server, no build tools, no monthly bills.
 Hosted **100% free on GitHub Pages**.
 
+## Links
+
+**Site**
+- Live menu: <https://addyzim.github.io/the-corner-cafe/>
+- Admin (orders + menu): <https://addyzim.github.io/the-corner-cafe/admin.html>
+
+**GitHub**
+- Repository: <https://github.com/Addyzim/the-corner-cafe>
+- Deploy status (Actions): <https://github.com/Addyzim/the-corner-cafe/actions>
+- Pages settings (custom domain): <https://github.com/Addyzim/the-corner-cafe/settings/pages>
+- Personal access tokens: <https://github.com/settings/tokens>
+
+**Firebase** (order database + admin sign-in) — project `another-day-cafe`
+- Console: <https://console.firebase.google.com/project/another-day-cafe>
+- Firestore (orders & menu): <https://console.firebase.google.com/project/another-day-cafe/firestore>
+- Authentication (staff logins): <https://console.firebase.google.com/project/another-day-cafe/authentication/users>
+
+**Cloudinary** (menu photo hosting)
+- Dashboard: <https://console.cloudinary.com>
+- Upload presets (`main_preset`): <https://console.cloudinary.com/settings/upload>
+
 ## Configure (top of `frontend/app.js`, the `CAFE` object)
 
 - Orders go to the **admin dashboard** (see "Order dashboard" below), not to
