@@ -546,7 +546,7 @@ createApp({
                 <div class="space-y-3">
                   <article v-for="item in g.items" :key="item.id"
                            @click="!isAdmin && openItem(item)"
-                           class="card bg-white/80 border border-white/70 rounded-2xl p-3.5 flex items-center gap-3.5 shadow-md shadow-mocha-400/10"
+                           class="card bg-white border border-stone-200/80 rounded-2xl p-3.5 flex items-center gap-3.5 shadow-md shadow-stone-400/15"
                            :class="[!isAdmin && cart[item.id] ? 'selected-liquid' : '', !isAdmin ? 'cursor-pointer' : '']">
 
                     <!-- Thumbnail -->
