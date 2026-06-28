@@ -459,10 +459,10 @@ createApp({
                 <h2 v-if="activeCategory === 'All'"
                     class="font-display text-lg font-semibold text-mocha-500 mb-2 px-1">{{ catLabel(g.category) }}</h2>
 
-                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                   <article v-for="item in g.items" :key="item.id"
                            @click="openItem(item)"
-                           class="card glass rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-mocha-300/20 cursor-pointer"
+                           class="card glass rounded-2xl p-4 flex items-center gap-3 shadow-sm shadow-mocha-300/20 cursor-pointer"
                            :class="cart[item.id] ? 'selected-liquid' : ''">
 
                     <!-- Thumbnail: only when there's a photo (keeps it airy) -->
@@ -472,15 +472,15 @@ createApp({
 
                     <!-- Name + description -->
                     <div class="min-w-0 flex-1">
-                      <h3 class="font-display text-lg font-medium text-mocha-600 leading-snug">{{ nameOf(item) }}</h3>
+                      <h3 class="font-display text-lg font-medium text-mocha-600 leading-snug break-words">{{ nameOf(item) }}</h3>
                       <p v-if="item.description" class="text-sm text-mocha-400 mt-0.5 leading-relaxed line-clamp-2">{{ item.description }}</p>
                     </div>
 
                     <!-- Right column: price + a fixed-width control slot so the
                          price never shifts when + becomes a stepper. -->
-                    <div class="shrink-0 flex items-center gap-2.5">
-                      <span class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap">{{ money(item.price) }}</span>
-                      <div class="w-[92px] flex justify-end" @click.stop>
+                    <div class="shrink-0 flex items-center gap-2">
+                      <span class="font-display font-semibold text-mocha-600 text-base whitespace-nowrap">{{ money(item.price) }}</span>
+                      <div class="w-[76px] flex justify-end" @click.stop>
                         <button v-if="!cart[item.id]" @click="addToCart(item)" aria-label="Add"
                                 class="pill w-8 h-8 grid place-items-center rounded-full border border-mocha-300/70 text-mocha-500 bg-white/40 hover:bg-mocha-500 hover:text-white hover:border-mocha-500 text-lg font-light leading-none">+</button>
                         <div v-else class="flex items-center gap-0.5 bg-white/55 border border-mocha-200/70 rounded-full p-0.5">
