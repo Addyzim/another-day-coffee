@@ -37,5 +37,5 @@ window.FIREBASE_CONFIG = {
  */
 window.CLOUDINARY = {
   cloudName: "dvzj8e5hy",      // e.g. "another-day-coffee"
-  uploadPreset: "Main Preset",   // e.g. "menu_unsigned"
+  uploadPreset: "main_preset",   // e.g. "menu_unsigned"
 };
