@@ -8,13 +8,13 @@ Hosted **100% free on GitHub Pages**.
 ## Links
 
 **Site**
-- Live menu: <https://addyzim.github.io/the-corner-cafe/>
-- Admin (orders + menu): <https://addyzim.github.io/the-corner-cafe/admin.html>
+- Live menu: <https://addyzim.github.io/another-day-coffee/>
+- Admin (orders + menu): <https://addyzim.github.io/another-day-coffee/admin.html>
 
 **GitHub**
-- Repository: <https://github.com/Addyzim/the-corner-cafe>
-- Deploy status (Actions): <https://github.com/Addyzim/the-corner-cafe/actions>
-- Pages settings (custom domain): <https://github.com/Addyzim/the-corner-cafe/settings/pages>
+- Repository: <https://github.com/Addyzim/another-day-coffee>
+- Deploy status (Actions): <https://github.com/Addyzim/another-day-coffee/actions>
+- Pages settings (custom domain): <https://github.com/Addyzim/another-day-coffee/settings/pages>
 - Personal access tokens: <https://github.com/settings/tokens>
 
 **Firebase** (order database + admin sign-in) — project `another-day-cafe`
@@ -158,6 +158,6 @@ domain itself, ~$10–15/year). When you're ready:
    (GitHub issues a free Let's Encrypt certificate).
 
 The site already uses **relative asset paths**, so it works both at the current
-`/the-corner-cafe/` subpath and at the root of a custom domain — no code changes
+`/another-day-coffee/` subpath and at the root of a custom domain — no code changes
 needed. Do **not** add a `CNAME` file manually before you own the domain; an
 unconfigured one would break the current live URL.

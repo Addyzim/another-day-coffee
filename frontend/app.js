@@ -510,7 +510,6 @@ createApp({
               <div class="min-w-0 flex-1">
                 <h3 class="font-display text-base font-medium text-mocha-600">{{ L(h.title) }}</h3>
                 <p class="text-sm text-mocha-400 leading-relaxed break-words" :class="expandedAbout[i] ? '' : 'line-clamp-2'">{{ L(h.text) }}</p>
-                <span class="text-xs font-medium text-mocha-300 mt-1 inline-block">{{ expandedAbout[i] ? t('less') : t('more') }}</span>
               </div>
             </div>
           </div>
