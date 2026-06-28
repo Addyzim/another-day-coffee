@@ -470,25 +470,17 @@ createApp({
                       <img :src="item.image" alt="" class="w-full h-full object-cover" />
                     </div>
 
-                    <!-- Name + description -->
+                    <!-- Name + description (take the full left width) -->
                     <div class="min-w-0 flex-1">
                       <h3 class="font-display text-lg font-medium text-mocha-600 leading-snug break-words">{{ nameOf(item) }}</h3>
                       <p v-if="item.description" class="text-sm text-mocha-400 mt-0.5 leading-relaxed line-clamp-2">{{ item.description }}</p>
                     </div>
 
-                    <!-- Right column: price + a fixed-width control slot so the
-                         price never shifts when + becomes a stepper. -->
-                    <div class="shrink-0 flex items-center gap-2">
-                      <span class="font-display font-semibold text-mocha-600 text-base whitespace-nowrap">{{ money(item.price) }}</span>
-                      <div class="w-[76px] flex justify-end" @click.stop>
-                        <button v-if="!cart[item.id]" @click="addToCart(item)" aria-label="Add"
-                                class="pill w-8 h-8 grid place-items-center rounded-full border border-mocha-300/70 text-mocha-500 bg-white/40 hover:bg-mocha-500 hover:text-white hover:border-mocha-500 text-lg font-light leading-none">+</button>
-                        <div v-else class="flex items-center gap-0.5 bg-white/55 border border-mocha-200/70 rounded-full p-0.5">
-                          <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">−</button>
-                          <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ cart[item.id] }}</span>
-                          <button @click="inc(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">+</button>
-                        </div>
-                      </div>
+                    <!-- Right: just the price (adding happens in the item card).
+                         A small badge shows the quantity if it's already in the order. -->
+                    <div class="shrink-0 flex flex-col items-end gap-1.5">
+                      <span class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap">{{ money(item.price) }}</span>
+                      <span v-if="cart[item.id]" class="text-xs font-semibold text-white bg-mocha-500 rounded-full px-2 py-0.5">×{{ cart[item.id] }}</span>
                     </div>
                   </article>
                 </div>
