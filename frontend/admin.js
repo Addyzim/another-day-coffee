@@ -36,6 +36,8 @@ createApp({
       menu: [],
       editing: null,       // item being added/edited (form model)
       saving: false,
+      uploading: false,
+      uploadPct: 0,
     };
   },
 
@@ -155,6 +157,38 @@ createApp({
     deleteItem(it) {
       if (!confirm(`Удалить «${it.name}»?`)) return;
       this.db.collection("menu").doc(String(it.id)).delete().catch((e) => alert(e.message));
+    },
+    uploadImage(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const cfg = window.CLOUDINARY || {};
+      if (!cfg.cloudName || !cfg.uploadPreset) {
+        alert("Cloudinary не настроен. Заполните cloudName и uploadPreset в firebase-config.js (инструкция в комментарии файла).");
+        e.target.value = ""; return;
+      }
+      if (!file.type.startsWith("image/")) { alert("Это не изображение."); e.target.value = ""; return; }
+      this.uploading = true; this.uploadPct = 0;
+      const data = new FormData();
+      data.append("file", file);
+      data.append("upload_preset", cfg.uploadPreset);
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", `https://api.cloudinary.com/v1_1/${cfg.cloudName}/image/upload`);
+      xhr.upload.onprogress = (ev) => {
+        if (ev.lengthComputable) this.uploadPct = Math.round((ev.loaded / ev.total) * 100);
+      };
+      xhr.onload = () => {
+        this.uploading = false; e.target.value = "";
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const res = JSON.parse(xhr.responseText);
+          this.editing.image = res.secure_url;
+        } else {
+          let msg = xhr.responseText;
+          try { msg = JSON.parse(xhr.responseText).error.message; } catch (_) {}
+          alert("Загрузка не удалась [" + xhr.status + "]: " + msg);
+        }
+      };
+      xhr.onerror = () => { this.uploading = false; e.target.value = ""; alert("Сеть недоступна — загрузка не удалась."); };
+      xhr.send(data);
     },
     async seedFromJson() {
       if (!confirm("Импортировать позиции из menu.json в базу? (существующие с теми же id перезапишутся)")) return;
@@ -311,9 +345,14 @@ createApp({
               <span v-else class="text-mocha-300 text-2xl">☕</span>
             </div>
             <div class="flex-1">
-              <label class="block"><span class="text-xs font-semibold text-mocha-500">Фото (путь или URL)</span>
-                <input v-model="editing.image" placeholder="images/black-coffee.jpg" class="w-full rounded-xl bg-stone-50 border border-stone-200 px-3 py-2 mt-1 outline-none focus:border-mocha-400 text-sm" /></label>
-              <p class="text-[11px] text-mocha-400 mt-1 leading-snug">Положите файл в <code>frontend/images/</code> репозитория и впишите <code>images/имя.jpg</code>. Можно и полный URL.</p>
+              <label class="block">
+                <span class="text-sm font-semibold text-mocha-500">{{ uploading ? 'Загрузка ' + uploadPct + '%' : 'Загрузить фото' }}</span>
+                <input type="file" accept="image/*" @change="uploadImage" :disabled="uploading" class="block w-full text-xs mt-1" />
+              </label>
+              <details class="mt-2">
+                <summary class="text-[11px] text-mocha-400 cursor-pointer">или вставить URL вручную</summary>
+                <input v-model="editing.image" placeholder="https://… или images/имя.jpg" class="w-full rounded-xl bg-stone-50 border border-stone-200 px-3 py-2 mt-1 outline-none focus:border-mocha-400 text-sm" />
+              </details>
               <button v-if="editing.image" @click="editing.image=''" class="text-xs text-red-400 mt-1">Убрать фото</button>
             </div>
           </div>
@@ -341,7 +380,7 @@ createApp({
 
           <div class="flex gap-2 mt-5">
             <button @click="cancelEdit" class="flex-1 bg-stone-100 text-mocha-500 font-semibold rounded-xl py-2.5">Отмена</button>
-            <button @click="saveItem" :disabled="saving" class="flex-1 bg-mocha-500 hover:bg-mocha-600 text-white font-semibold rounded-xl py-2.5 disabled:opacity-60">{{ saving ? 'Сохранение…' : 'Сохранить' }}</button>
+            <button @click="saveItem" :disabled="saving || uploading" class="flex-1 bg-mocha-500 hover:bg-mocha-600 text-white font-semibold rounded-xl py-2.5 disabled:opacity-60">{{ saving ? 'Сохранение…' : 'Сохранить' }}</button>
           </div>
         </div>
       </div>
