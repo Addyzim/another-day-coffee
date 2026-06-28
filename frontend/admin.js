@@ -527,23 +527,28 @@ createApp({
         </div>
       </header>
 
-      <!-- Section switch -->
-      <div class="flex gap-2 mb-4">
-        <button @click="section='orders'" class="px-4 py-1.5 rounded-full text-sm font-medium"
-                :class="section==='orders' ? 'bg-mocha-500 text-white' : 'bg-white border border-stone-200 text-mocha-500'">
-          {{ t('orders') }} <span v-if="openCount" class="ml-1 bg-white/25 rounded-full px-1.5">{{ openCount }}</span>
+      <!-- Section switch (primary navigation) -->
+      <div class="grid grid-cols-2 gap-2 mb-5 sm:max-w-md">
+        <button @click="section='orders'"
+                class="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-base font-semibold transition"
+                :class="section==='orders' ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40' : 'bg-white border border-stone-200 text-mocha-500 hover:bg-stone-50'">
+          <span>🧾</span> {{ t('orders') }}
+          <span v-if="openCount" class="bg-white/25 rounded-full px-2 text-sm">{{ openCount }}</span>
         </button>
-        <button @click="section='menu'" class="px-4 py-1.5 rounded-full text-sm font-medium"
-                :class="section==='menu' ? 'bg-mocha-500 text-white' : 'bg-white border border-stone-200 text-mocha-500'">{{ t('menuTab') }}</button>
+        <button @click="section='menu'"
+                class="flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-base font-semibold transition"
+                :class="section==='menu' ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40' : 'bg-white border border-stone-200 text-mocha-500 hover:bg-stone-50'">
+          <span>☕</span> {{ t('menuTab') }}
+        </button>
       </div>
 
       <!-- ================= ORDERS ================= -->
       <div v-if="section==='orders'">
         <div class="flex flex-wrap items-center gap-2 mb-4">
-          <button @click="tab='open'" class="px-4 py-1.5 rounded-full text-sm font-medium"
-                  :class="tab==='open' ? 'bg-mocha-400 text-white' : 'bg-white border border-stone-200 text-mocha-500'">{{ t('open') }}</button>
-          <button @click="tab='closed'" class="px-4 py-1.5 rounded-full text-sm font-medium"
-                  :class="tab==='closed' ? 'bg-mocha-400 text-white' : 'bg-white border border-stone-200 text-mocha-500'">{{ t('closed') }}</button>
+          <button @click="tab='open'" class="px-6 py-2.5 rounded-full text-base font-semibold transition"
+                  :class="tab==='open' ? 'bg-mocha-400 text-white shadow-sm shadow-mocha-300/40' : 'bg-white border border-stone-200 text-mocha-500 hover:bg-stone-50'">{{ t('open') }}</button>
+          <button @click="tab='closed'" class="px-6 py-2.5 rounded-full text-base font-semibold transition"
+                  :class="tab==='closed' ? 'bg-mocha-400 text-white shadow-sm shadow-mocha-300/40' : 'bg-white border border-stone-200 text-mocha-500 hover:bg-stone-50'">{{ t('closed') }}</button>
           <div class="relative ml-auto w-full sm:w-72">
             <input v-model="search" :placeholder="t('searchOrders')"
                    class="w-full rounded-full bg-white border border-stone-200 pl-4 pr-8 py-1.5 text-sm outline-none focus:border-mocha-400" />
