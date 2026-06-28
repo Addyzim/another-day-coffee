@@ -218,6 +218,62 @@ createApp({
       } catch (e) { alert("Import failed: " + e.message); }
       finally { this.saving = false; }
     },
+    // Download the whole current menu as a menu.json file (same shape as the repo file).
+    exportMenu() {
+      const items = [...this.menu]
+        .sort((a, b) => (a.order ?? a.id ?? 0) - (b.order ?? b.id ?? 0))
+        .map((it) => ({
+          id: Number(it.id),
+          category: it.category || "",
+          category_vi: it.category_vi || "",
+          name: it.name || "",
+          name_vi: it.name_vi || "",
+          price: parseInt(String(it.price).replace(/[^0-9]/g, ""), 10) || 0,
+          description: it.description || "",
+          image: it.image || "",
+          available: it.available !== false,
+          order: Number(it.order ?? it.id) || 0,
+        }));
+      const blob = new Blob([JSON.stringify({ items }, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "menu.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    },
+    // Import a menu.json the staff edited offline; overwrites items with the same id.
+    async importMenuFile(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      e.target.value = "";
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const items = Array.isArray(parsed) ? parsed : (parsed.items || []);
+        if (!items.length) { alert("В файле нет позиций (ожидается { \"items\": [...] })."); return; }
+        if (!confirm(`Импортировать ${items.length} позиций? Позиции с теми же id будут перезаписаны.`)) return;
+        this.saving = true;
+        const batch = this.db.batch();
+        items.forEach((it, i) => {
+          const id = Number(it.id) || (i + 1);
+          batch.set(this.db.collection("menu").doc(String(id)), {
+            id,
+            category: it.category || "Uncategorized",
+            category_vi: it.category_vi || "",
+            name: it.name || "",
+            name_vi: it.name_vi || "",
+            price: parseInt(String(it.price).replace(/[^0-9]/g, ""), 10) || 0,
+            description: it.description || "",
+            image: it.image || "",
+            available: it.available !== false,
+            order: Number(it.order ?? id) || id,
+          });
+        });
+        await batch.commit();
+        alert("Импортировано позиций: " + items.length);
+      } catch (err) { alert("Импорт не удался: " + err.message); }
+      finally { this.saving = false; }
+    },
   },
 
   template: `
@@ -305,10 +361,18 @@ createApp({
 
       <!-- ================= MENU ================= -->
       <div v-else>
-        <div class="flex gap-2 mb-4">
+        <div class="flex flex-wrap gap-2 mb-4">
           <button @click="newItem" class="flex-1 bg-mocha-500 hover:bg-mocha-600 text-white font-semibold rounded-xl py-2.5">+ Добавить позицию</button>
           <button v-if="menu.length===0" @click="seedFromJson" :disabled="saving"
                   class="bg-sage-200 text-mocha-600 font-semibold rounded-xl px-4 py-2.5">Импорт из menu.json</button>
+        </div>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <button @click="exportMenu" :disabled="menu.length===0"
+                  class="flex-1 bg-white border border-stone-200 text-mocha-600 font-semibold rounded-xl py-2.5 disabled:opacity-50">⬇ Выгрузить меню (.json)</button>
+          <label class="flex-1 cursor-pointer bg-white border border-stone-200 text-mocha-600 font-semibold rounded-xl py-2.5 text-center">
+            <span>{{ saving ? 'Импорт…' : '⬆ Загрузить файл' }}</span>
+            <input type="file" accept=".json,application/json" @change="importMenuFile" :disabled="saving" class="hidden" />
+          </label>
         </div>
 
         <p v-if="menu.length===0" class="text-center text-mocha-400 py-12">Меню пустое. Добавь позицию или импортируй из menu.json.</p>
