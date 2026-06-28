@@ -403,19 +403,19 @@ createApp({
 
     <!-- ===== Header ===== -->
     <header class="sticky top-0 z-30 glass-header">
-      <div class="h-16 px-5 grid grid-cols-[2.75rem_1fr_2.75rem] items-center gap-2">
+      <div class="h-16 px-4 grid grid-cols-[2.5rem_1fr_2.5rem] items-center gap-1">
         <button @click="openDrawer" aria-label="Menu"
-                class="pill w-11 h-11 grid place-items-center rounded-full text-mocha-500 hover:bg-white/60">
+                class="pill w-10 h-10 grid place-items-center rounded-full text-mocha-500 hover:bg-white/60">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <div class="flex items-center justify-center gap-2 min-w-0">
-          <img v-if="cafe.logo" :src="cafe.logo" alt="" class="h-8 w-8 rounded-full object-cover shrink-0" />
-          <svg v-else viewBox="0 0 24 24" class="h-7 w-7 text-mocha-500 shrink-0" fill="currentColor" aria-hidden="true">
+        <div class="flex items-center justify-center gap-1.5 min-w-0">
+          <img v-if="cafe.logo" :src="cafe.logo" alt="" class="h-7 w-7 rounded-full object-cover shrink-0" />
+          <svg v-else viewBox="0 0 24 24" class="h-6 w-6 text-mocha-500 shrink-0" fill="currentColor" aria-hidden="true">
             <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
             <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#f3f1ee" stroke-width="1.4" stroke-linecap="round"/>
           </svg>
-          <h1 class="font-display text-xl font-semibold text-mocha-600 truncate">{{ cafe.name }}</h1>
+          <h1 class="font-display text-lg font-semibold text-mocha-600 truncate">{{ cafe.name }}</h1>
         </div>
         <div aria-hidden="true"></div>
       </div>
