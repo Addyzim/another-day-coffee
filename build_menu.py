@@ -27,7 +27,7 @@ EXCEL_PATH = os.path.join(HERE, "backend", "menu.xlsx")
 JSON_PATH = os.path.join(HERE, "frontend", "menu.json")
 
 REQUIRED = ["id", "category", "name", "price"]
-OPTIONAL = ["name_vi", "category_vi", "description"]
+OPTIONAL = ["name_vi", "category_vi", "description", "image"]
 
 
 def normalize(df: pd.DataFrame) -> list[dict]:

@@ -7,8 +7,8 @@ Hosted **100% free on GitHub Pages**.
 
 ## Configure (top of `frontend/app.js`, the `CAFE` object)
 
-- `CAFE.whatsapp` — manager's WhatsApp number, **digits only, international
-  format** (e.g. `"84905123456"`). Orders won't send until this is set.
+- Orders go to the **admin dashboard** (see "Order dashboard" below), not to
+  WhatsApp — the customer is never redirected out of the app.
 - `CAFE.logo` — path to a logo image, e.g. `"./logo.png"` (drop the file in
   `frontend/`). Leave `""` for text-only.
 - About / Contacts copy uses `{ en, vi }` fields; menu items support `name_vi`
@@ -31,15 +31,24 @@ without it, orders still go to WhatsApp.
    service cloud.firestore {
      match /databases/{database}/documents {
        match /orders/{id} {
+         // Anyone can place a well-formed order...
          allow create: if request.resource.data.status == 'open'
-                       && request.resource.data.total is number;
+                       && request.resource.data.total is number
+                       && request.resource.data.total >= 0
+                       && request.resource.data.total < 100000000
+                       && request.resource.data.items is list
+                       && request.resource.data.items.size() <= 100;
+         // ...but only signed-in staff can read or change them.
          allow read, update, delete: if request.auth != null;
        }
+       // Lock everything else down by default.
+       match /{document=**} { allow read, write: if false; }
      }
    }
    ```
 
-   Anyone can place an order; only signed-in staff can read/close them.
+   Anyone can place an order; only signed-in staff can read/close them. The size
+   and total limits prevent obvious abuse of the public create path.
 6. Open `/admin.html`, sign in, and watch orders arrive live (with a chime).
 
 ```

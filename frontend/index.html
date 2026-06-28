@@ -65,65 +65,18 @@
       -webkit-touch-callout: none;
     }
 
-    /* --- Ambient koi-pond background ------------------------------------- */
-    /* A faint, slow pond: soft pastel water tint, koi drifting across, and
-       grassy reeds swaying in the lower corners. Everything sits behind the
-       frosted glass (which blurs it further), so it stays non-distracting. */
+    /* --- Ambient coffee background --------------------------------------- */
+    /* Fixed to the viewport (so it never shifts while scrolling): two soft warm
+       pools for depth + a faint, tiled coffee-bean pattern. All low-contrast so
+       it sits quietly behind the frosted cards. */
     .ambient { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
 
-    /* Blurred pastel "water" pools — a touch more colourful. */
-    .blob { position: absolute; border-radius: 9999px; filter: blur(72px); opacity: 0.46; }
-    .blob-1 { width: 340px; height: 340px; background: #bcd6a9; top: -70px; left: -90px; animation: drift 20s ease-in-out infinite; }
-    .blob-2 { width: 300px; height: 300px; background: #f3c9c1; bottom: -50px; right: -80px; animation: drift 24s ease-in-out infinite reverse; }
-    .blob-3 { width: 260px; height: 260px; background: #cabfe8; top: 42%; left: 40%; animation: drift 28s ease-in-out infinite; }
-    @keyframes drift {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      50%      { transform: translate(20px, -28px) scale(1.08); }
-    }
+    .blob { position: absolute; border-radius: 9999px; filter: blur(80px); opacity: 0.40; }
+    .blob-1 { width: 360px; height: 360px; background: #e8d3bf; top: -90px; left: -90px; }
+    .blob-2 { width: 320px; height: 320px; background: #ddc6b4; bottom: -80px; right: -80px; }
 
-    /* Koi: small, pale, slow. They mostly glide through the side margins and
-       are blurred away where they pass behind cards. */
-    .koi { position: absolute; top: 0; left: 0; will-change: transform; }
-    /* A small school of koi in different tints (hue-rotate recolours them). */
-    .koi-a { width: 112px; opacity: 0.34; filter: saturate(1.3); animation: swimRight 64s linear infinite; }
-    .koi-b { width: 84px;  opacity: 0.30; filter: hue-rotate(-24deg) saturate(1.4); animation: swimLeft 82s linear infinite; }
-    .koi-c { width: 98px;  opacity: 0.30; filter: hue-rotate(20deg) saturate(1.5); animation: swimRight2 92s linear infinite; }
-    .koi-d { width: 76px;  opacity: 0.26; filter: hue-rotate(325deg) saturate(1.3); animation: swimLeft2 106s linear infinite; }
-    @keyframes swimRight {
-      0%   { transform: translate(-22vw, 16vh) rotate(5deg); }
-      50%  { transform: translate(50vw, 9vh)  rotate(-4deg); }
-      100% { transform: translate(122vw, 17vh) rotate(5deg); }
-    }
-    @keyframes swimLeft {
-      0%   { transform: translate(122vw, 64vh) scaleX(-1) rotate(4deg); }
-      50%  { transform: translate(46vw, 72vh)  scaleX(-1) rotate(-5deg); }
-      100% { transform: translate(-26vw, 62vh) scaleX(-1) rotate(4deg); }
-    }
-    @keyframes swimRight2 {
-      0%   { transform: translate(-26vw, 44vh) rotate(-4deg); }
-      50%  { transform: translate(52vw, 50vh)  rotate(5deg); }
-      100% { transform: translate(126vw, 42vh) rotate(-4deg); }
-    }
-    @keyframes swimLeft2 {
-      0%   { transform: translate(126vw, 30vh) scaleX(-1) rotate(5deg); }
-      50%  { transform: translate(40vw, 22vh)  scaleX(-1) rotate(-4deg); }
-      100% { transform: translate(-30vw, 32vh) scaleX(-1) rotate(5deg); }
-    }
-
-    /* Grassy reeds in the bottom corners, gently swaying. */
-    .reeds { position: absolute; bottom: 0; height: 175px; width: 145px; opacity: 0.5; }
-    .reeds-l { left: -8px; }
-    .reeds-r { right: -8px; transform: scaleX(-1); }
-    .reed { fill: none; stroke-linecap: round; transform-box: fill-box; transform-origin: bottom center;
-            animation: sway 6.5s ease-in-out infinite; }
-    .reed:nth-child(2) { animation-duration: 8s;   animation-delay: -1.5s; }
-    .reed:nth-child(3) { animation-duration: 7.2s; animation-delay: -3s; }
-    .reed:nth-child(4) { animation-duration: 9s;   animation-delay: -0.8s; }
-    .reed:nth-child(5) { animation-duration: 7.8s; animation-delay: -2.2s; }
-    @keyframes sway {
-      0%, 100% { transform: rotate(-2.5deg); }
-      50%      { transform: rotate(2.5deg); }
-    }
+    /* Tiled coffee beans, very subtle. */
+    .beans { position: absolute; inset: 0; opacity: 0.10; }
 
     /* --- Frosted glass ---------------------------------------------------- */
     .glass {
@@ -198,54 +151,30 @@
     [contenteditable="true"]:focus { background: rgba(255,255,255,.6); border-radius: 6px; }
 
     @media (prefers-reduced-motion: reduce) {
-      .blob, .card, .pill, .koi, .reed { animation: none !important; transition: none !important; }
+      .blob, .card, .pill { animation: none !important; transition: none !important; }
     }
   </style>
 </head>
 
 <body class="text-mocha-600 antialiased">
-  <!-- Ambient koi-pond background, sits behind everything -->
+  <!-- Ambient coffee background, fixed behind everything -->
   <div class="ambient" aria-hidden="true">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
-    <div class="blob blob-3"></div>
 
-    <!-- Reusable koi silhouette (head facing right) -->
-    <svg width="0" height="0" style="position:absolute">
+    <!-- Faint tiled coffee-bean pattern -->
+    <svg class="beans" width="100%" height="100%">
       <defs>
-        <g id="koiShape">
-          <path d="M-28,-3 C -42,-11 -54,-13 -60,-9 C -55,-4 -55,4 -60,9 C -54,13 -42,11 -28,3 C -31,0 -31,0 -28,-3 Z" fill="#f1ebe4"/>
-          <path d="M6,-13 C 2,-24 -8,-24 -13,-19 C -7,-15 -1,-13 4,-11 Z" fill="#f1ebe4"/>
-          <path d="M6,13 C 2,24 -8,24 -13,19 C -7,15 -1,13 4,11 Z" fill="#f1ebe4"/>
-          <path d="M42,0 C42,-9 30,-15 12,-15 C -6,-15 -20,-10 -28,-3 C -30,-1 -30,1 -28,3 C -20,10 -6,15 12,15 C30,15 42,9 42,0 Z" fill="#fdfbf9"/>
-          <circle cx="12" cy="-3" r="6.5" fill="#e2b38d"/>
-          <circle cx="-3" cy="5"  r="4.5" fill="#e0bca0"/>
-          <circle cx="25" cy="4"  r="4"   fill="#e6cdbf"/>
-          <circle cx="34" cy="-4" r="1.6" fill="#9a8475"/>
+        <g id="bean">
+          <ellipse cx="0" cy="0" rx="8.5" ry="13" fill="#8c6a4b"/>
+          <path d="M0,-11 C -4,-5 4,5 0,11" stroke="#f3f1ee" stroke-width="1.5" fill="none" stroke-linecap="round"/>
         </g>
+        <pattern id="beanTile" width="92" height="92" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+          <use href="#bean" x="22" y="24" transform="rotate(20 22 24)"/>
+          <use href="#bean" x="68" y="70" transform="rotate(-12 68 70)"/>
+        </pattern>
       </defs>
-    </svg>
-
-    <!-- A small school of koi drifting slowly across the pond -->
-    <svg class="koi koi-a" viewBox="-70 -26 140 52"><use href="#koiShape"/></svg>
-    <svg class="koi koi-b" viewBox="-70 -26 140 52"><use href="#koiShape"/></svg>
-    <svg class="koi koi-c" viewBox="-70 -26 140 52"><use href="#koiShape"/></svg>
-    <svg class="koi koi-d" viewBox="-70 -26 140 52"><use href="#koiShape"/></svg>
-
-    <!-- Grassy reeds swaying in the lower corners -->
-    <svg class="reeds reeds-l" viewBox="0 0 145 175">
-      <path class="reed" d="M28,176 C 22,116 34,76 26,16"  stroke="#a8b89c" stroke-width="5.5"/>
-      <path class="reed" d="M52,176 C 47,124 60,90 54,34"  stroke="#b9c7ad" stroke-width="4.5"/>
-      <path class="reed" d="M80,176 C 86,120 72,82 82,28"  stroke="#9aab8d" stroke-width="6"/>
-      <path class="reed" d="M104,176 C 110,124 96,96 102,46" stroke="#b2c0a4" stroke-width="4"/>
-      <path class="reed" d="M14,176 C 10,136 22,106 14,66"  stroke="#a8b89c" stroke-width="5"/>
-    </svg>
-    <svg class="reeds reeds-r" viewBox="0 0 145 175">
-      <path class="reed" d="M28,176 C 22,116 34,76 26,16"  stroke="#a8b89c" stroke-width="5.5"/>
-      <path class="reed" d="M52,176 C 47,124 60,90 54,34"  stroke="#b9c7ad" stroke-width="4.5"/>
-      <path class="reed" d="M80,176 C 86,120 72,82 82,28"  stroke="#9aab8d" stroke-width="6"/>
-      <path class="reed" d="M104,176 C 110,124 96,96 102,46" stroke="#b2c0a4" stroke-width="4"/>
-      <path class="reed" d="M14,176 C 10,136 22,106 14,66"  stroke="#a8b89c" stroke-width="5"/>
+      <rect width="100%" height="100%" fill="url(#beanTile)"/>
     </svg>
   </div>
 

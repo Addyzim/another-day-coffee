@@ -13,10 +13,11 @@
  * blank simply disables the order database (orders still go to WhatsApp).
  */
 window.FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: "",
+  apiKey: "AIzaSyCBxNm9mzKEZ4yvnvaYNqynxu6aRXaApsk",
+  authDomain: "another-day-cafe.firebaseapp.com",
+  projectId: "another-day-cafe",
+  storageBucket: "another-day-cafe.firebasestorage.app",
+  messagingSenderId: "312314419408",
+  appId: "1:312314419408:web:22bd7f16e6bf1c775ae6d5",
+  measurementId: "G-8734C1CTPE",
 };

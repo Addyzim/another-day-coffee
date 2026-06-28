@@ -5,8 +5,9 @@
  * site is hosted for free on GitHub Pages — there is no server to run.
  *
  * Features: burger side menu (Menu / About Us / Contacts), EN/VI language
- * selector (auto-detects Vietnamese phones), a cart that sends table orders
- * to the manager's WhatsApp, and a hidden admin mode for editing the menu.
+ * selector (auto-detects Vietnamese phones), a cart that submits table orders
+ * to the kitchen dashboard (Firestore — see admin.html), and a hidden admin
+ * mode for editing the menu.
  *
  * ====================== THINGS TO CONFIGURE ============================
  *   CAFE.whatsapp : the manager's WhatsApp number in international format,
@@ -72,11 +73,12 @@ const STRINGS = {
     tryAgain: "Try again", empty: "Nothing here yet — check another category.",
     hours: "Opening hours", openMaps: "Open in Maps", add: "Add",
     order: "Your order", table: "Table number", note: "Note (optional)",
-    send: "Send order via WhatsApp", viewOrder: "View order", items: "items", item: "item",
+    send: "Place order", viewOrder: "View order", items: "items", item: "item",
     total: "Total", emptyCart: "Your order is empty.", tablePh: "e.g. 5",
     notePh: "Any special requests?", footer: "See you another day",
     editHint: "Tap any name, price, or description to edit. Then Export .json and commit it to publish.",
-    noWa: "Order channel not set up yet.", orderHi: "New order",
+    orderPlaced: "Order placed — thank you!", orderFailed: "Couldn't place the order. Please try again.",
+    orderUnavailable: "Online ordering isn't available yet.", placing: "Placing…",
   },
   vi: {
     menu: "Thực đơn", about: "Về chúng tôi", contact: "Liên hệ",
@@ -85,11 +87,12 @@ const STRINGS = {
     tryAgain: "Thử lại", empty: "Chưa có món nào — chọn mục khác nhé.",
     hours: "Giờ mở cửa", openMaps: "Mở bản đồ", add: "Thêm",
     order: "Đơn của bạn", table: "Số bàn", note: "Ghi chú (tuỳ chọn)",
-    send: "Gửi đơn qua WhatsApp", viewOrder: "Xem đơn", items: "món", item: "món",
+    send: "Đặt món", viewOrder: "Xem đơn", items: "món", item: "món",
     total: "Tổng", emptyCart: "Đơn của bạn đang trống.", tablePh: "vd. 5",
     notePh: "Yêu cầu đặc biệt?", footer: "Hẹn gặp lại ngày mai",
     editHint: "Chạm vào tên, giá hoặc mô tả để sửa. Sau đó Export .json và commit để đăng.",
-    noWa: "Kênh đặt hàng chưa được cài đặt.", orderHi: "Đơn mới",
+    orderPlaced: "Đã đặt món — cảm ơn bạn!", orderFailed: "Không gửi được đơn. Vui lòng thử lại.",
+    orderUnavailable: "Tính năng đặt món trực tuyến chưa sẵn sàng.", placing: "Đang gửi…",
   },
 };
 
@@ -121,6 +124,8 @@ createApp({
       cartOpen: false,
       tableNo: "",
       note: "",
+      placing: false,    // order submission in flight
+      detailItem: null,  // item shown in the detail modal
     };
   },
 
@@ -136,6 +141,16 @@ createApp({
     filteredItems() {
       if (this.activeCategory === "All") return this.items;
       return this.items.filter((it) => it.category === this.activeCategory);
+    },
+    // Items grouped by category (one group when a single category is active).
+    groupedItems() {
+      const order = [];
+      const map = {};
+      for (const it of this.filteredItems) {
+        if (!map[it.category]) { map[it.category] = []; order.push(it.category); }
+        map[it.category].push(it);
+      }
+      return order.map((c) => ({ category: c, items: map[c] }));
     },
     cartLines() {
       return Object.entries(this.cart)
@@ -227,6 +242,8 @@ createApp({
     },
     openCart() { this.cartOpen = true; document.body.style.overflow = "hidden"; },
     closeCart() { this.cartOpen = false; document.body.style.overflow = ""; },
+    openItem(item) { this.detailItem = item; document.body.style.overflow = "hidden"; },
+    closeItem() { this.detailItem = null; if (!this.cartOpen) document.body.style.overflow = ""; },
 
     // Firestore handle, or null when Firebase isn't configured.
     db() {
@@ -246,40 +263,36 @@ createApp({
       return this._db;
     },
 
+    // Submit the order straight to the kitchen dashboard (Firestore).
+    // No WhatsApp hand-off — the customer stays in the app.
     sendOrder() {
-      if (!this.cartCount) return;
-
-      // Save the order to the live admin dashboard (if Firebase is configured).
+      if (!this.cartCount || this.placing) return;
       const db = this.db();
-      if (db) {
-        db.collection("orders").add({
-          cafe: this.cafe.name,
-          table: this.tableNo || "",
-          note: this.note || "",
-          total: this.cartTotal,
-          status: "open",
-          items: this.cartLines.map((l) => ({
-            name: l.name, name_vi: l.name_vi || "", qty: l.qty, price: l.price,
-          })),
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        }).catch((e) => console.error("order save failed", e));
-      }
+      if (!db) { this.showToast(this.t("orderUnavailable")); return; }
 
-      // Also open WhatsApp with the order pre-filled for the manager.
-      const num = (this.cafe.whatsapp || "").replace(/[^0-9]/g, "");
-      if (!num) {
-        this.showToast(db ? "Order sent" : this.t("noWa"));
-        if (db) { this.cart = {}; this.tableNo = ""; this.note = ""; this.closeCart(); }
-        return;
-      }
-      const lines = this.cartLines
-        .map((l) => `• ${l.qty}× ${this.nameOf(l)} — ${this.money(l.price * l.qty)}`)
-        .join("\n");
-      let msg = `${this.t("orderHi")} — ${this.cafe.name}\n`;
-      if (this.tableNo) msg += `${this.t("table")}: ${this.tableNo}\n`;
-      msg += `\n${lines}\n\n${this.t("total")}: ${this.money(this.cartTotal)}`;
-      if (this.note) msg += `\n${this.t("note")}: ${this.note}`;
-      window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, "_blank");
+      this.placing = true;
+      db.collection("orders").add({
+        cafe: this.cafe.name,
+        table: this.tableNo || "",
+        note: this.note || "",
+        total: this.cartTotal,
+        status: "open",
+        items: this.cartLines.map((l) => ({
+          name: l.name, name_vi: l.name_vi || "", qty: l.qty, price: l.price,
+        })),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      }).then(() => {
+        this.cart = {};
+        this.tableNo = "";
+        this.note = "";
+        this.closeCart();
+        this.showToast(this.t("orderPlaced"));
+      }).catch((e) => {
+        console.error("order save failed", e);
+        this.showToast(this.t("orderFailed"));
+      }).finally(() => {
+        this.placing = false;
+      });
     },
 
     // ----- data ------------------------------------------------------------
@@ -293,7 +306,7 @@ createApp({
         name: String(lower.name ?? "").trim(),
         price: parseInt(priceDigits, 10) || 0,
       };
-      for (const f of ["name_vi", "category_vi", "description"]) {
+      for (const f of ["name_vi", "category_vi", "description", "image"]) {
         const v = lower[f];
         if (v != null && String(v).trim() !== "") row[f] = String(v).trim();
       }
@@ -374,7 +387,7 @@ createApp({
       this.showToast("Downloaded menu.json — commit it to publish");
     },
     exportXlsx() {
-      const header = ["id", "category", "category_vi", "name", "name_vi", "price", "description"];
+      const header = ["id", "category", "category_vi", "name", "name_vi", "price", "description", "image"];
       const rows = this.items.map((it) => this.normalizeRow(it));
       const ws = XLSX.utils.json_to_sheet(rows, { header });
       const wb = XLSX.utils.book_new();
@@ -397,7 +410,11 @@ createApp({
                stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
         <div class="flex items-center justify-center gap-2 min-w-0">
-          <img v-if="cafe.logo" :src="cafe.logo" alt="" class="h-8 w-8 rounded-full object-cover" />
+          <img v-if="cafe.logo" :src="cafe.logo" alt="" class="h-8 w-8 rounded-full object-cover shrink-0" />
+          <svg v-else viewBox="0 0 24 24" class="h-7 w-7 text-mocha-500 shrink-0" fill="currentColor" aria-hidden="true">
+            <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
+            <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#f3f1ee" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
           <h1 class="font-display text-xl font-semibold text-mocha-600 truncate">{{ cafe.name }}</h1>
         </div>
         <div aria-hidden="true"></div>
@@ -413,8 +430,12 @@ createApp({
         <div class="px-6 pt-7 pb-5 border-b border-white/40 flex items-start justify-between gap-3">
           <div class="min-w-0">
             <div class="flex items-center gap-2">
-              <img v-if="cafe.logo" :src="cafe.logo" alt="" class="h-9 w-9 rounded-full object-cover" />
-              <p class="font-display text-2xl font-semibold text-mocha-600 leading-none truncate">{{ cafe.name }}</p>
+              <img v-if="cafe.logo" :src="cafe.logo" alt="" class="h-9 w-9 rounded-full object-cover shrink-0" />
+              <svg v-else viewBox="0 0 24 24" class="h-8 w-8 text-mocha-500 shrink-0" fill="currentColor" aria-hidden="true">
+                <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
+                <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+              </svg>
+              <p class="font-display text-xl font-semibold text-mocha-600 leading-tight">{{ cafe.name }}</p>
             </div>
             <p class="text-xs text-mocha-400 mt-2 tracking-wide">{{ L(cafe.tagline) }}</p>
           </div>
@@ -466,13 +487,13 @@ createApp({
 
         <!-- ----- MENU ----- -->
         <section v-if="view === 'menu'" key="menu" class="px-5 py-5">
-          <div class="-mr-5 pr-5 flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory pb-1">
-            <button v-for="cat in categories" :key="cat" @click="activeCategory = cat"
+          <div class="-mx-5 flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory pb-1">
+            <button v-for="(cat, ci) in categories" :key="cat" @click="activeCategory = cat"
                     class="pill shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
-                    :style="{ scrollSnapAlign: 'start' }"
-                    :class="activeCategory === cat ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40' : 'glass text-mocha-500 hover:bg-white/70'">
+                    :class="[activeCategory === cat ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40' : 'glass text-mocha-500 hover:bg-white/70', ci === 0 ? 'ml-5' : '']">
               {{ catLabel(cat) }}
             </button>
+            <span aria-hidden="true" class="shrink-0 w-2"></span>
           </div>
 
           <div v-if="isAdmin" class="mt-4 glass rounded-2xl p-3 grid grid-cols-3 gap-2 text-sm">
@@ -490,42 +511,61 @@ createApp({
           </div>
 
           <transition v-else name="swap" mode="out-in">
-            <div :key="activeCategory + lang" class="mt-4 space-y-3">
+            <div :key="activeCategory + lang" class="mt-4">
               <div v-if="filteredItems.length === 0" class="text-center text-mocha-400 py-20">{{ t('empty') }}</div>
 
-              <article v-for="item in filteredItems" :key="item.id"
-                       class="card glass rounded-2xl p-4 flex justify-between gap-4 shadow-sm shadow-mocha-300/20"
-                       :class="!isAdmin && cart[item.id] ? 'selected-liquid' : ''">
-                <div class="min-w-0 flex-1">
-                  <span class="inline-block text-[10px] uppercase tracking-widest font-semibold text-mocha-400 mb-1.5">{{ catLabel(item.category) }}</span>
-                  <h2 class="font-display text-lg font-medium text-mocha-600 leading-snug outline-none"
-                      :contenteditable="isAdmin"
-                      :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-                      @blur="saveField(item, 'name', $event)">{{ isAdmin ? item.name : nameOf(item) }}</h2>
-                  <p v-if="!isAdmin && altNameOf(item)" class="text-sm text-mocha-400 mt-0.5 italic">{{ altNameOf(item) }}</p>
-                  <p v-if="item.description" class="text-sm text-mocha-400 mt-1 leading-relaxed outline-none"
-                     :contenteditable="isAdmin"
-                     :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-                     @blur="saveField(item, 'description', $event)">{{ item.description }}</p>
-                </div>
-                <div class="shrink-0 flex flex-col items-end justify-between gap-2">
-                  <span class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap outline-none"
-                        :contenteditable="isAdmin"
-                        :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-                        @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
-                  <div v-if="!isAdmin" class="mt-auto">
-                    <button v-if="!cart[item.id]" @click="addToCart(item)"
-                            class="pill text-xs font-semibold px-3.5 py-1.5 rounded-full bg-mocha-500 text-white hover:bg-mocha-600">+ {{ t('add') }}</button>
-                    <div v-else class="flex items-center gap-1.5 glass rounded-full p-1">
-                      <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white/70 text-mocha-600 text-lg leading-none">−</button>
-                      <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ cart[item.id] }}</span>
-                      <button @click="inc(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-mocha-500 text-white text-lg leading-none">+</button>
-                    </div>
-                  </div>
-                </div>
-              </article>
+              <!-- Grouped by category (headers shown in All mode) -->
+              <div v-for="g in groupedItems" :key="g.category" class="mb-5">
+                <h2 v-if="activeCategory === 'All'"
+                    class="font-display text-lg font-semibold text-mocha-500 mb-2 px-1">{{ catLabel(g.category) }}</h2>
 
-              <p class="text-center text-mocha-400 text-xs pt-2">{{ L(cafe.menuNote) }}</p>
+                <div class="space-y-3">
+                  <article v-for="item in g.items" :key="item.id"
+                           @click="!isAdmin && openItem(item)"
+                           class="card bg-white/80 border border-white/70 rounded-2xl p-3.5 flex items-center gap-3.5 shadow-md shadow-mocha-400/10"
+                           :class="[!isAdmin && cart[item.id] ? 'selected-liquid' : '', !isAdmin ? 'cursor-pointer' : '']">
+
+                    <!-- Thumbnail -->
+                    <div class="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-mocha-300/15 grid place-items-center">
+                      <img v-if="item.image" :src="item.image" alt="" class="w-full h-full object-cover" />
+                      <svg v-else viewBox="0 0 24 24" class="w-7 h-7 text-mocha-300" fill="currentColor" aria-hidden="true">
+                        <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
+                        <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                      <h3 class="font-display text-lg font-medium text-mocha-600 leading-snug outline-none"
+                          :contenteditable="isAdmin"
+                          :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
+                          @blur="saveField(item, 'name', $event)">{{ isAdmin ? item.name : nameOf(item) }}</h3>
+                      <p v-if="item.description" class="text-sm text-mocha-400 mt-0.5 leading-relaxed line-clamp-2 outline-none"
+                         :contenteditable="isAdmin"
+                         :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
+                         @blur="saveField(item, 'description', $event)">{{ item.description }}</p>
+                      <input v-if="isAdmin" type="text" :value="item.image || ''" placeholder="Image URL"
+                             @blur="saveField(item, 'image', $event)"
+                             class="mt-1 w-full text-xs rounded-md bg-stone-100 px-2 py-1 outline-none" />
+                      <span class="block font-display font-semibold text-mocha-600 mt-1 outline-none"
+                            :contenteditable="isAdmin"
+                            :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500 inline-block' : ''"
+                            @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
+                    </div>
+
+                    <div v-if="!isAdmin" class="shrink-0 self-center" @click.stop>
+                      <button v-if="!cart[item.id]" @click="addToCart(item)"
+                              class="pill text-xs font-semibold px-3.5 py-2 rounded-full bg-mocha-500 text-white hover:bg-mocha-600">+ {{ t('add') }}</button>
+                      <div v-else class="flex items-center gap-1.5 glass rounded-full p-1">
+                        <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white/80 text-mocha-600 text-lg leading-none">−</button>
+                        <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ cart[item.id] }}</span>
+                        <button @click="inc(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-mocha-500 text-white text-lg leading-none">+</button>
+                      </div>
+                    </div>
+                  </article>
+                </div>
+              </div>
+
+              <p class="text-center text-mocha-400 text-xs pt-1">{{ L(cafe.menuNote) }}</p>
             </div>
           </transition>
         </section>
@@ -614,6 +654,12 @@ createApp({
 
           <div v-else class="space-y-3">
             <div v-for="l in cartLines" :key="l.id" class="flex items-center gap-3">
+              <div class="shrink-0 w-11 h-11 rounded-lg overflow-hidden bg-mocha-300/15 grid place-items-center">
+                <img v-if="l.image" :src="l.image" alt="" class="w-full h-full object-cover" />
+                <svg v-else viewBox="0 0 24 24" class="w-5 h-5 text-mocha-300" fill="currentColor" aria-hidden="true">
+                  <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
+                </svg>
+              </div>
               <div class="flex-1 min-w-0">
                 <p class="font-medium text-mocha-600 truncate">{{ nameOf(l) }}</p>
                 <p class="text-xs text-mocha-400">{{ money(l.price) }}</p>
@@ -643,11 +689,50 @@ createApp({
                 <span class="font-display text-xl font-semibold text-mocha-600">{{ money(cartTotal) }}</span>
               </div>
 
-              <button @click="sendOrder"
-                      class="pill w-full flex items-center justify-center gap-2 bg-mocha-500 text-white font-semibold rounded-2xl py-3.5 shadow-md shadow-mocha-300/40 hover:bg-mocha-600">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.4 5 5.1-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.6-6c-.3-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.5 6.5 0 01-1.9-1.2 7.2 7.2 0 01-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.6-1.4-.8-1.9s-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2A5.2 5.2 0 009 12.3 11.7 11.7 0 0013.5 16c.6.3 1.1.4 1.5.5a3.6 3.6 0 001.6.1c.5-.1 1.5-.6 1.7-1.2s.2-1.1.2-1.2-.2-.2-.4-.2z"/></svg>
-                {{ t('send') }}
+              <button @click="sendOrder" :disabled="placing"
+                      class="pill w-full flex items-center justify-center gap-2 bg-mocha-500 text-white font-semibold rounded-2xl py-3.5 shadow-md shadow-mocha-300/40 hover:bg-mocha-600 disabled:opacity-60">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                {{ placing ? t('placing') : t('send') }}
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- ===== Item detail ===== -->
+    <transition name="overlay">
+      <div v-if="detailItem" @click="closeItem" class="fixed inset-0 z-[58] bg-mocha-600/35 backdrop-blur-[2px]"></div>
+    </transition>
+    <transition name="sheet">
+      <div v-if="detailItem" class="fixed bottom-0 left-0 right-0 z-[59] mx-auto w-full max-w-md">
+        <div class="glass rounded-t-3xl overflow-hidden max-h-[88vh] overflow-y-auto">
+          <div class="relative w-full aspect-[4/3] bg-mocha-300/15 grid place-items-center">
+            <img v-if="detailItem.image" :src="detailItem.image" alt="" class="w-full h-full object-cover" />
+            <svg v-else viewBox="0 0 24 24" class="w-16 h-16 text-mocha-300" fill="currentColor" aria-hidden="true">
+              <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
+              <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            <button @click="closeItem" aria-label="Close"
+                    class="pill absolute top-3 right-3 w-9 h-9 grid place-items-center rounded-full bg-white/80 text-mocha-500">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+          <div class="p-5">
+            <p class="text-[10px] uppercase tracking-widest font-semibold text-mocha-400">{{ catLabel(detailItem.category) }}</p>
+            <h2 class="font-display text-2xl font-semibold text-mocha-600 mt-1">{{ nameOf(detailItem) }}</h2>
+            <p v-if="altNameOf(detailItem)" class="text-sm text-mocha-400 italic">{{ altNameOf(detailItem) }}</p>
+            <p v-if="detailItem.description" class="text-sm text-mocha-500 mt-3 leading-relaxed">{{ detailItem.description }}</p>
+            <div class="flex items-center justify-between mt-5">
+              <span class="font-display text-xl font-semibold text-mocha-600">{{ money(detailItem.price) }}</span>
+              <div v-if="!cart[detailItem.id]">
+                <button @click="addToCart(detailItem)" class="pill px-5 py-2.5 rounded-full bg-mocha-500 text-white font-semibold hover:bg-mocha-600">+ {{ t('add') }}</button>
+              </div>
+              <div v-else class="flex items-center gap-2 glass rounded-full p-1">
+                <button @click="dec(detailItem.id)" class="pill w-9 h-9 grid place-items-center rounded-full bg-white/80 text-mocha-600 text-xl leading-none">−</button>
+                <span class="font-semibold text-mocha-600 w-6 text-center">{{ cart[detailItem.id] }}</span>
+                <button @click="inc(detailItem.id)" class="pill w-9 h-9 grid place-items-center rounded-full bg-mocha-500 text-white text-xl leading-none">+</button>
+              </div>
             </div>
           </div>
         </div>
