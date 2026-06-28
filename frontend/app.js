@@ -409,12 +409,14 @@ createApp({
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <img v-if="cafe.logo" :src="cafe.logo" alt="" class="h-7 w-7 rounded-full object-cover shrink-0" />
-        <svg v-else viewBox="0 0 24 24" class="h-6 w-6 text-mocha-500 shrink-0" fill="currentColor" aria-hidden="true">
-          <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
-          <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#f3f1ee" stroke-width="1.4" stroke-linecap="round"/>
-        </svg>
-        <h1 class="font-display text-xl font-semibold text-mocha-600 truncate">{{ cafe.name }}</h1>
+        <!-- Brand lockup: a faint coffee-bean watermark sits behind the name -->
+        <div class="relative flex items-center min-w-0">
+          <svg viewBox="0 0 24 24" class="absolute -left-2 top-1/2 -translate-y-1/2 h-10 w-10 text-mocha-500 opacity-[0.12] z-0 pointer-events-none" fill="currentColor" aria-hidden="true">
+            <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
+            <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#f3f1ee" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <h1 class="relative z-10 font-display text-xl font-semibold text-mocha-600 truncate pl-1">{{ cafe.name }}</h1>
+        </div>
       </div>
     </header>
 
