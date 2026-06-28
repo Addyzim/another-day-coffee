@@ -12,11 +12,9 @@
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- SheetJS (admin only) + Firebase are heavy, so they load deferred and
-       never block first paint. The app renders the menu from menu.json
-       immediately, then Firebase enables live updates + ordering in the
-       background once it's ready. -->
-  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- Firebase is heavy, so it loads deferred and never blocks first paint.
+       The app renders the menu from menu.json immediately, then Firebase
+       enables live updates + ordering in the background once it's ready. -->
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script defer src="firebase-config.js"></script>
@@ -52,8 +50,8 @@
 
     body {
       font-family: 'Inter', system-ui, sans-serif;
-      /* Soft warm-grey base so the white steam reads against it. */
-      background-color: #e9e7e2;
+      /* Gentle vertical gradient gives the steam something to read against. */
+      background: linear-gradient(180deg, #efece8 0%, #e2ded7 100%) fixed;
     }
     .font-display { font-family: 'Fraunces', Georgia, serif; }
 
@@ -76,11 +74,16 @@
     .blob { position: absolute; border-radius: 9999px; filter: blur(95px); opacity: 0.18; }
     .blob-1 { width: 340px; height: 340px; background: #ead9c7; top: -110px; left: -100px; }
 
-    /* Steam texture: soft blurred white columns that billow, rise and fade. */
+    /* Steam texture: soft blurred columns (bright core + faint warm halo so
+       the edges read on a light background) that billow, rise and fade. */
     .wisp {
       position: absolute; bottom: -18%; border-radius: 50%;
-      background: radial-gradient(closest-side, rgba(255,255,255,0.95), rgba(255,255,255,0));
-      filter: blur(26px); opacity: 0;
+      background: radial-gradient(closest-side,
+                    rgba(255,255,255,0.98) 0%,
+                    rgba(255,255,255,0.5) 38%,
+                    rgba(140,106,75,0.10) 66%,
+                    rgba(140,106,75,0) 100%);
+      filter: blur(20px); opacity: 0;
       animation: steamRise 16s ease-in-out infinite;
     }
     .wisp-1 { width: 200px; height: 480px; left: 4%;  animation-duration: 16s; animation-delay: -1s; }
@@ -187,10 +190,10 @@
   </div>
 
   <!-- The whole app is constrained to a phone-width column and centered. -->
-  <div id="app" class="relative z-10 mx-auto max-w-md min-h-screen"></div>
+  <div id="app" class="relative z-10 mx-auto max-w-md md:max-w-4xl min-h-screen"></div>
 
   <!-- Mount point template lives in app.js. The ?v= is bumped on each deploy
        so browsers always fetch the latest version instead of a cached copy. -->
-  <script src="app.js?v=20260629a"></script>
+  <script src="app.js?v=20260629b"></script>
 </body>
 </html>

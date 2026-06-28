@@ -1,31 +1,15 @@
 /*
- * Another Day Coffee — Vue 3 frontend (static, no backend, no build step)
+ * Another Day Coffee — Vue 3 customer frontend (no build step).
  * ----------------------------------------------------------------------
- * The menu lives in a static `menu.json` next to this file, so the whole
- * site is hosted for free on GitHub Pages — there is no server to run.
+ * Renders the menu instantly from the static `menu.json`, then (once the
+ * deferred Firebase SDK loads) switches to the live menu from Firestore and
+ * enables ordering. Staff manage the menu and orders in admin.html.
  *
- * Features: burger side menu (Menu / About Us / Contacts), EN/VI language
- * selector (auto-detects Vietnamese phones), a cart that submits table orders
- * to the kitchen dashboard (Firestore — see admin.html), and a hidden admin
- * mode for editing the menu.
- *
- * ====================== THINGS TO CONFIGURE ============================
- *   CAFE.whatsapp : the manager's WhatsApp number in international format,
- *                   digits only (e.g. "84905123456"). Until set, the order
- *                   button will warn instead of opening WhatsApp.
- *   CAFE.logo     : path to a logo image (e.g. "./logo.png"). Leave "" for
- *                   text-only. Drop the file in the frontend/ folder.
- * ======================================================================
- *
- * Staff/admin access is hidden from visitors. Open it by adding STAFF_HASH
- * to the URL, e.g.  https://addyzim.github.io/the-corner-cafe/#staff-corner
- * (light obscurity, not real security — a static site can't truly hide it.)
+ *   CAFE.logo : optional path to a logo image (e.g. "./logo.png"); shown in
+ *               the side drawer. Leave "" for text-only.
  */
 
 const { createApp } = Vue;
-
-const REQUIRED = ["id", "category", "name", "price"];
-const STAFF_HASH = "#staff-corner";
 
 // ---- Café details (edit freely) -------------------------------------------
 const CAFE = {
@@ -117,15 +101,12 @@ createApp({
       lang: "en",
       view: "menu",
       drawerOpen: false,
-      staffUnlocked: false,
 
       items: [],
       activeCategory: "All",
-      isAdmin: false,
       loading: true,
       error: "",
       toast: "",
-      importing: false,
 
       cart: {},          // id -> qty
       milk: {},          // id -> milk key (coffee items)
@@ -180,8 +161,6 @@ createApp({
 
   mounted() {
     this.detectLang();
-    this.applyHash();
-    window.addEventListener("hashchange", this.applyHash);
     this.loadJsonFallback();   // instant menu from the static file
     this.initFirebase();       // then go live (deferred Firebase) in the background
   },
@@ -242,11 +221,9 @@ createApp({
     },
 
     // ----- nav / drawer ----------------------------------------------------
-    applyHash() { if (window.location.hash === STAFF_HASH) this.staffUnlocked = true; },
     openDrawer() { this.drawerOpen = true; document.body.style.overflow = "hidden"; },
     closeDrawer() { this.drawerOpen = false; document.body.style.overflow = ""; },
     go(view) { this.view = view; this.closeDrawer(); window.scrollTo({ top: 0, behavior: "smooth" }); },
-    enterAdmin() { this.isAdmin = true; this.go("menu"); this.showToast(this.t("adminOn")); },
 
     // ----- cart ------------------------------------------------------------
     // Does this item take a milk choice? (coffee / coldbrew categories)
@@ -388,61 +365,6 @@ createApp({
       }
     },
 
-    saveField(item, field, event) {
-      let value = event.target.innerText.trim();
-      if (field === "price") value = parseInt(value.replace(/[^0-9]/g, ""), 10) || 0;
-      if (String(item[field]) === String(value)) return;
-      item[field] = value;
-      this.showToast("Edited — Export to publish");
-    },
-
-    triggerImport() { this.$refs.fileInput.click(); },
-    async handleImport(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      this.importing = true;
-      try {
-        const buf = await file.arrayBuffer();
-        const wb = XLSX.read(buf, { type: "array" });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
-        const present = new Set((rows[0] ? Object.keys(rows[0]) : []).map((k) => k.trim().toLowerCase()));
-        const missing = REQUIRED.filter((c) => !present.has(c));
-        if (missing.length) throw new Error(`Missing column(s): ${missing.join(", ")}`);
-        const items = this.normalizeRows(rows);
-        if (!items.length) throw new Error("No valid rows found");
-        this.items = items;
-        this.activeCategory = "All";
-        this.showToast(`Imported ${items.length} items — Export to publish`);
-      } catch (err) {
-        this.showToast("Import failed: " + err.message);
-        console.error(err);
-      } finally {
-        this.importing = false;
-        event.target.value = "";
-      }
-    },
-    download(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = filename; a.click();
-      URL.revokeObjectURL(url);
-    },
-    exportJson() {
-      const payload = { items: this.items.map((it) => this.normalizeRow(it)) };
-      this.download(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }), "menu.json");
-      this.showToast("Downloaded menu.json — commit it to publish");
-    },
-    exportXlsx() {
-      const header = ["id", "category", "category_vi", "name", "name_vi", "price", "description", "image"];
-      const rows = this.items.map((it) => this.normalizeRow(it));
-      const ws = XLSX.utils.json_to_sheet(rows, { header });
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "menu");
-      const out = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-      this.download(new Blob([out], { type: "application/octet-stream" }), "menu.xlsx");
-      this.showToast("Downloaded menu.xlsx");
-    },
   },
 
   template: `
@@ -504,19 +426,6 @@ createApp({
             {{ t(n.key) }}
           </button>
         </nav>
-
-        <div v-if="staffUnlocked" class="p-3 border-t border-white/40">
-          <button @click="isAdmin ? (isAdmin = false, closeDrawer()) : enterAdmin()"
-                  class="pill w-full flex items-center gap-3 px-4 py-3 rounded-xl font-medium"
-                  :class="isAdmin ? 'bg-blush-300 text-mocha-600' : 'text-mocha-500 hover:bg-white/60'">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/>
-              <path d="M19.4 15a1.6 1.6 0 00.3 1.8 2 2 0 11-2.8 2.8 1.6 1.6 0 00-2.7 1.1V21a2 2 0 11-4 0v-.1A1.6 1.6 0 005 19.4a2 2 0 11-2.8-2.8 1.6 1.6 0 00.3-1.8 1.6 1.6 0 00-1.5-1H1a2 2 0 110-4h.1A1.6 1.6 0 004.6 5a2 2 0 112.8-2.8 1.6 1.6 0 001.8.3H9a1.6 1.6 0 001-1.5V1a2 2 0 114 0v.1a1.6 1.6 0 001 1.5 1.6 1.6 0 001.8-.3 2 2 0 112.8 2.8 1.6 1.6 0 00-.3 1.8V9a1.6 1.6 0 001.5 1H23a2 2 0 110 4h-.1a1.6 1.6 0 00-1.5 1z"/>
-            </svg>
-            {{ isAdmin ? t('adminOff') : t('adminOn') }}
-          </button>
-        </div>
       </aside>
     </transition>
 
@@ -528,19 +437,11 @@ createApp({
         <section v-if="view === 'menu'" key="menu" class="px-5 py-5">
           <div class="-mx-5 flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory pb-1">
             <button v-for="(cat, ci) in categories" :key="cat" @click="activeCategory = cat"
-                    class="pill shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
-                    :class="[activeCategory === cat ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40' : 'glass text-mocha-500 hover:bg-white/70', ci === 0 ? 'ml-5' : '']">
+                    class="pill shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap border"
+                    :class="[activeCategory === cat ? 'bg-mocha-500 text-white border-mocha-500 shadow-md shadow-mocha-300/40' : 'bg-white/75 text-mocha-500 border-white/70 hover:bg-white', ci === 0 ? 'ml-5' : '']">
               {{ catLabel(cat) }}
             </button>
             <span aria-hidden="true" class="shrink-0 w-2"></span>
-          </div>
-
-          <div v-if="isAdmin" class="mt-4 glass rounded-2xl p-3 grid grid-cols-3 gap-2 text-sm">
-            <button @click="triggerImport" class="pill rounded-xl py-2.5 font-semibold text-mocha-600 bg-sage-200 hover:bg-sage-300">{{ importing ? 'Importing…' : 'Import .xlsx' }}</button>
-            <button @click="exportJson" class="pill rounded-xl py-2.5 font-semibold text-mocha-600 bg-lilac-200 hover:bg-lilac-300">Export .json</button>
-            <button @click="exportXlsx" class="pill rounded-xl py-2.5 font-semibold text-mocha-600 bg-blush-200 hover:bg-blush-300">Export .xlsx</button>
-            <input ref="fileInput" type="file" accept=".xlsx,.xls" class="hidden" @change="handleImport" />
-            <p class="col-span-3 text-mocha-400 text-xs text-center pt-1">{{ t('editHint') }}</p>
           </div>
 
           <div v-if="loading" class="text-center text-mocha-400 py-20 font-display text-lg">{{ t('loading') }}</div>
@@ -558,40 +459,28 @@ createApp({
                 <h2 v-if="activeCategory === 'All'"
                     class="font-display text-lg font-semibold text-mocha-500 mb-2 px-1">{{ catLabel(g.category) }}</h2>
 
-                <div class="space-y-3">
+                <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <article v-for="item in g.items" :key="item.id"
-                           @click="!isAdmin && openItem(item)"
-                           class="card glass rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-mocha-300/20"
-                           :class="[!isAdmin && cart[item.id] ? 'selected-liquid' : '', !isAdmin ? 'cursor-pointer' : '']">
+                           @click="openItem(item)"
+                           class="card glass rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-mocha-300/20 cursor-pointer"
+                           :class="cart[item.id] ? 'selected-liquid' : ''">
 
                     <!-- Thumbnail: only when there's a photo (keeps it airy) -->
-                    <div v-if="item.image || isAdmin" class="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-stone-100 grid place-items-center">
-                      <img v-if="item.image" :src="item.image" alt="" class="w-full h-full object-cover" />
-                      <span v-else class="text-stone-300 text-xl">☕</span>
+                    <div v-if="item.image" class="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-stone-100 grid place-items-center">
+                      <img :src="item.image" alt="" class="w-full h-full object-cover" />
                     </div>
 
                     <!-- Name + description -->
                     <div class="min-w-0 flex-1">
-                      <h3 class="font-display text-lg font-medium text-mocha-600 leading-snug outline-none"
-                          :contenteditable="isAdmin"
-                          :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-                          @blur="saveField(item, 'name', $event)">{{ isAdmin ? item.name : nameOf(item) }}</h3>
-                      <p v-if="item.description" class="text-sm text-mocha-400 mt-0.5 leading-relaxed line-clamp-2 outline-none"
-                         :contenteditable="isAdmin"
-                         :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-                         @blur="saveField(item, 'description', $event)">{{ item.description }}</p>
-                      <input v-if="isAdmin" type="text" :value="item.image || ''" placeholder="Image URL"
-                             @blur="saveField(item, 'image', $event)"
-                             class="mt-1 w-full text-xs rounded-md bg-stone-100 px-2 py-1 outline-none" />
+                      <h3 class="font-display text-lg font-medium text-mocha-600 leading-snug">{{ nameOf(item) }}</h3>
+                      <p v-if="item.description" class="text-sm text-mocha-400 mt-0.5 leading-relaxed line-clamp-2">{{ item.description }}</p>
                     </div>
 
-                    <!-- Right column: price, with a small + (or stepper) to its right -->
+                    <!-- Right column: price + a fixed-width control slot so the
+                         price never shifts when + becomes a stepper. -->
                     <div class="shrink-0 flex items-center gap-2.5">
-                      <span class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap outline-none"
-                            :contenteditable="isAdmin"
-                            :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
-                            @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
-                      <div v-if="!isAdmin" @click.stop>
+                      <span class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap">{{ money(item.price) }}</span>
+                      <div class="w-[92px] flex justify-end" @click.stop>
                         <button v-if="!cart[item.id]" @click="addToCart(item)" aria-label="Add"
                                 class="pill w-8 h-8 grid place-items-center rounded-full border border-mocha-300/70 text-mocha-500 bg-white/40 hover:bg-mocha-500 hover:text-white hover:border-mocha-500 text-lg font-light leading-none">+</button>
                         <div v-else class="flex items-center gap-0.5 bg-white/55 border border-mocha-200/70 rounded-full p-0.5">
@@ -611,7 +500,7 @@ createApp({
         </section>
 
         <!-- ----- ABOUT ----- -->
-        <section v-else-if="view === 'about'" key="about" class="px-5 py-6 space-y-4">
+        <section v-else-if="view === 'about'" key="about" class="px-5 py-6 space-y-4 w-full max-w-2xl mx-auto">
           <h2 class="font-display text-2xl font-semibold text-mocha-600 px-1">{{ t('about') }}</h2>
           <div class="glass rounded-2xl p-5 space-y-3 shadow-sm shadow-mocha-300/20">
             <p v-for="(p, i) in L(cafe.about)" :key="i" class="text-sm text-mocha-500 leading-relaxed">{{ p }}</p>
@@ -630,7 +519,7 @@ createApp({
         </section>
 
         <!-- ----- CONTACT ----- -->
-        <section v-else key="contact" class="px-5 py-6 space-y-4">
+        <section v-else key="contact" class="px-5 py-6 space-y-4 w-full max-w-2xl mx-auto">
           <h2 class="font-display text-2xl font-semibold text-mocha-600 px-1">{{ t('contact') }}</h2>
           <div class="glass rounded-2xl p-5 space-y-4 shadow-sm shadow-mocha-300/20">
             <div class="flex items-start gap-3">
