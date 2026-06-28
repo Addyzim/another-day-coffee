@@ -36,6 +36,6 @@ window.FIREBASE_CONFIG = {
  * Until both are filled, the upload button shows a hint instead.
  */
 window.CLOUDINARY = {
-  cloudName: "",      // e.g. "another-day-coffee"
-  uploadPreset: "",   // e.g. "menu_unsigned"
+  cloudName: "dvzj8e5hy",      // e.g. "another-day-coffee"
+  uploadPreset: "Main Preset",   // e.g. "menu_unsigned"
 };
