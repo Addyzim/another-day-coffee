@@ -197,6 +197,25 @@ createApp({
       this._toastTimer = setTimeout(() => (this.toast = ""), 2200);
     },
 
+    // Water-like ripple from the tap point on a button.
+    ripple(e) {
+      const btn = e.currentTarget;
+      if (!btn) return;
+      const rect = btn.getBoundingClientRect();
+      const d = Math.max(rect.width, rect.height);
+      const x = (e.clientX != null ? e.clientX : rect.left + rect.width / 2);
+      const y = (e.clientY != null ? e.clientY : rect.top + rect.height / 2);
+      const span = document.createElement("span");
+      span.className = "ripple";
+      span.style.width = span.style.height = d + "px";
+      span.style.left = (x - rect.left - d / 2) + "px";
+      span.style.top = (y - rect.top - d / 2) + "px";
+      const old = btn.getElementsByClassName("ripple")[0];
+      if (old) old.remove();
+      btn.appendChild(span);
+      setTimeout(() => span.remove(), 600);
+    },
+
     // ----- language --------------------------------------------------------
     detectLang() {
       let saved = null;
@@ -426,10 +445,10 @@ createApp({
         <!-- ----- MENU ----- -->
         <section v-if="view === 'menu'" key="menu" class="px-4 py-5">
           <div class="-mx-4 px-4 flex gap-2 overflow-x-auto no-scrollbar snap-x-mandatory pb-1">
-            <button v-for="cat in categories" :key="cat" @click="activeCategory = cat"
+            <button v-for="cat in categories" :key="cat" @click="activeCategory = cat" @pointerdown="ripple"
                     class="pill shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap"
                     :style="{ scrollSnapAlign: 'start' }"
-                    :class="activeCategory === cat ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40' : 'glass text-mocha-500 hover:bg-white/70'">
+                    :class="activeCategory === cat ? 'bg-mocha-500 text-white shadow-md shadow-mocha-300/40 is-active' : 'glass text-mocha-500 hover:bg-white/70'">
               {{ catLabel(cat) }}
             </button>
           </div>
@@ -453,7 +472,8 @@ createApp({
               <div v-if="filteredItems.length === 0" class="text-center text-mocha-400 py-20">{{ t('empty') }}</div>
 
               <article v-for="item in filteredItems" :key="item.id"
-                       class="card glass rounded-2xl p-4 flex justify-between gap-4 shadow-sm shadow-mocha-300/20">
+                       class="card glass rounded-2xl p-4 flex justify-between gap-4 shadow-sm shadow-mocha-300/20"
+                       :class="!isAdmin && cart[item.id] ? 'selected-liquid' : ''">
                 <div class="min-w-0 flex-1">
                   <span class="inline-block text-[10px] uppercase tracking-widest font-semibold text-mocha-400 mb-1.5">{{ catLabel(item.category) }}</span>
                   <h2 class="font-display text-lg font-medium text-mocha-600 leading-snug outline-none"
@@ -472,7 +492,7 @@ createApp({
                         :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
                         @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
                   <div v-if="!isAdmin" class="mt-auto">
-                    <button v-if="!cart[item.id]" @click="addToCart(item)"
+                    <button v-if="!cart[item.id]" @click="addToCart(item)" @pointerdown="ripple"
                             class="pill text-xs font-semibold px-3.5 py-1.5 rounded-full bg-mocha-500 text-white hover:bg-mocha-600">+ {{ t('add') }}</button>
                     <div v-else class="flex items-center gap-1.5 glass rounded-full p-1">
                       <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white/70 text-mocha-600 text-lg leading-none">−</button>
@@ -533,7 +553,7 @@ createApp({
             </div>
           </div>
 
-          <a :href="cafe.contact.mapsUrl" target="_blank" rel="noopener"
+          <a :href="cafe.contact.mapsUrl" target="_blank" rel="noopener" @pointerdown="ripple"
              class="pill block text-center bg-mocha-500 text-white font-semibold rounded-2xl py-3.5 shadow-md shadow-mocha-300/40 hover:bg-mocha-600">{{ t('openMaps') }}</a>
         </section>
       </transition>
@@ -601,7 +621,7 @@ createApp({
                 <span class="font-display text-xl font-semibold text-mocha-600">{{ money(cartTotal) }}</span>
               </div>
 
-              <button @click="sendOrder"
+              <button @click="sendOrder" @pointerdown="ripple"
                       class="pill w-full flex items-center justify-center gap-2 bg-mocha-500 text-white font-semibold rounded-2xl py-3.5 shadow-md shadow-mocha-300/40 hover:bg-mocha-600">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.4 5 5.1-1.3A10 10 0 1012 2zm0 18a8 8 0 01-4.1-1.1l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1112 20zm4.6-6c-.3-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.5 6.5 0 01-1.9-1.2 7.2 7.2 0 01-1.3-1.7c-.1-.2 0-.4.1-.5l.4-.4.2-.4v-.4c0-.1-.6-1.4-.8-1.9s-.4-.4-.6-.4h-.5a1 1 0 00-.7.3 3 3 0 00-.9 2.2A5.2 5.2 0 009 12.3 11.7 11.7 0 0013.5 16c.6.3 1.1.4 1.5.5a3.6 3.6 0 001.6.1c.5-.1 1.5-.6 1.7-1.2s.2-1.1.2-1.2-.2-.2-.4-.2z"/></svg>
                 {{ t('send') }}

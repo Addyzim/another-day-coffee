@@ -30,10 +30,11 @@
             sans: ['Inter', 'system-ui', 'sans-serif'],
           },
           colors: {
-            mocha:  { 300: '#c7b3a3', 400: '#b29f93', 500: '#9a8475', 600: '#7d6757' },
-            sage:   { 200: '#d7e0d0', 300: '#c2cfb8', 400: '#a8b89c' },
-            blush:  { 200: '#efdcd9', 300: '#e3c8c6' },
-            lilac:  { 200: '#ded8ea', 300: '#cbc2e0' },
+            /* Warmer, more colourful coffee-caramel browns */
+            mocha:  { 300: '#d4b79b', 400: '#c39873', 500: '#ac7a4f', 600: '#885d39' },
+            sage:   { 200: '#d3e2c6', 300: '#bcd0aa', 400: '#a3ba8c' },
+            blush:  { 200: '#f3dbd5', 300: '#e8c4bf' },
+            lilac:  { 200: '#e0d6f0', 300: '#cabde6' },
           },
         },
       },
@@ -56,11 +57,11 @@
        frosted glass (which blurs it further), so it stays non-distracting. */
     .ambient { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
 
-    /* Blurred pastel "water" pools — green for the grassy/pond feel. */
-    .blob { position: absolute; border-radius: 9999px; filter: blur(72px); opacity: 0.40; }
-    .blob-1 { width: 340px; height: 340px; background: #cdd9c4; top: -70px; left: -90px; animation: drift 20s ease-in-out infinite; }
-    .blob-2 { width: 300px; height: 300px; background: #ecd6d3; bottom: -50px; right: -80px; animation: drift 24s ease-in-out infinite reverse; }
-    .blob-3 { width: 260px; height: 260px; background: #d3dec9; top: 42%; left: 40%; animation: drift 28s ease-in-out infinite; }
+    /* Blurred pastel "water" pools — a touch more colourful. */
+    .blob { position: absolute; border-radius: 9999px; filter: blur(72px); opacity: 0.46; }
+    .blob-1 { width: 340px; height: 340px; background: #bcd6a9; top: -70px; left: -90px; animation: drift 20s ease-in-out infinite; }
+    .blob-2 { width: 300px; height: 300px; background: #f3c9c1; bottom: -50px; right: -80px; animation: drift 24s ease-in-out infinite reverse; }
+    .blob-3 { width: 260px; height: 260px; background: #cabfe8; top: 42%; left: 40%; animation: drift 28s ease-in-out infinite; }
     @keyframes drift {
       0%, 100% { transform: translate(0, 0) scale(1); }
       50%      { transform: translate(20px, -28px) scale(1.08); }
@@ -69,8 +70,11 @@
     /* Koi: small, pale, slow. They mostly glide through the side margins and
        are blurred away where they pass behind cards. */
     .koi { position: absolute; top: 0; left: 0; will-change: transform; }
-    .koi-a { width: 112px; opacity: 0.30; animation: swimRight 64s linear infinite; }
-    .koi-b { width: 84px;  opacity: 0.24; animation: swimLeft 82s linear infinite; }
+    /* A small school of koi in different tints (hue-rotate recolours them). */
+    .koi-a { width: 112px; opacity: 0.34; filter: saturate(1.3); animation: swimRight 64s linear infinite; }
+    .koi-b { width: 84px;  opacity: 0.30; filter: hue-rotate(-24deg) saturate(1.4); animation: swimLeft 82s linear infinite; }
+    .koi-c { width: 98px;  opacity: 0.30; filter: hue-rotate(20deg) saturate(1.5); animation: swimRight2 92s linear infinite; }
+    .koi-d { width: 76px;  opacity: 0.26; filter: hue-rotate(325deg) saturate(1.3); animation: swimLeft2 106s linear infinite; }
     @keyframes swimRight {
       0%   { transform: translate(-22vw, 16vh) rotate(5deg); }
       50%  { transform: translate(50vw, 9vh)  rotate(-4deg); }
@@ -80,6 +84,16 @@
       0%   { transform: translate(122vw, 64vh) scaleX(-1) rotate(4deg); }
       50%  { transform: translate(46vw, 72vh)  scaleX(-1) rotate(-5deg); }
       100% { transform: translate(-26vw, 62vh) scaleX(-1) rotate(4deg); }
+    }
+    @keyframes swimRight2 {
+      0%   { transform: translate(-26vw, 44vh) rotate(-4deg); }
+      50%  { transform: translate(52vw, 50vh)  rotate(5deg); }
+      100% { transform: translate(126vw, 42vh) rotate(-4deg); }
+    }
+    @keyframes swimLeft2 {
+      0%   { transform: translate(126vw, 30vh) scaleX(-1) rotate(5deg); }
+      50%  { transform: translate(40vw, 22vh)  scaleX(-1) rotate(-4deg); }
+      100% { transform: translate(-30vw, 32vh) scaleX(-1) rotate(5deg); }
     }
 
     /* Grassy reeds in the bottom corners, gently swaying. */
@@ -113,6 +127,7 @@
 
     /* --- Card entrance + hover ------------------------------------------- */
     .card {
+      position: relative;
       transition: transform .35s cubic-bezier(.22,.61,.36,1),
                   box-shadow .35s ease, background-color .35s ease;
       will-change: transform;
@@ -154,8 +169,31 @@
     input { font-family: inherit; }
 
     /* --- Pills ----------------------------------------------------------- */
-    .pill { transition: background-color .3s ease, color .3s ease, transform .2s ease, box-shadow .3s ease; }
+    .pill { position: relative; overflow: hidden; transition: background-color .3s ease, color .3s ease, transform .2s ease, box-shadow .3s ease; }
     .pill:active { transform: scale(.94); }
+
+    /* --- Liquid effects -------------------------------------------------- */
+    /* Water-like ripple that spreads from the tap point on a button. */
+    .ripple { position: absolute; border-radius: 9999px; background: rgba(255,255,255,.5);
+              transform: scale(0); animation: rippleExpand .6s ease-out forwards; pointer-events: none; }
+    @keyframes rippleExpand { to { transform: scale(2.4); opacity: 0; } }
+
+    /* Active category pill does a brief gooey "blob" morph. */
+    .is-active { animation: liquidPop .55s cubic-bezier(.22,.61,.36,1); }
+    @keyframes liquidPop {
+      0%   { border-radius: 45% 55% 52% 48% / 55% 48% 52% 45%; transform: scale(.92); }
+      45%  { border-radius: 58% 42% 45% 55% / 45% 58% 42% 55%; transform: scale(1.07); }
+      100% { border-radius: 9999px; transform: scale(1); }
+    }
+
+    /* A selected (in-cart) card gets a watery ring + slow liquid sheen. */
+    .selected-liquid { box-shadow: 0 0 0 2px rgba(163,186,140,.6), 0 12px 26px -14px rgba(136,93,57,.35); }
+    .selected-liquid::after {
+      content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+      background: linear-gradient(120deg, transparent 35%, rgba(255,255,255,.45) 50%, transparent 65%);
+      background-size: 220% 100%; animation: sheen 2.8s linear infinite;
+    }
+    @keyframes sheen { to { background-position: -220% 0; } }
 
     /* Hide the horizontal scrollbar on the category pill row */
     .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -166,7 +204,8 @@
     [contenteditable="true"]:focus { background: rgba(255,255,255,.6); border-radius: 6px; }
 
     @media (prefers-reduced-motion: reduce) {
-      .blob, .card, .pill, .koi, .reed { animation: none !important; transition: none !important; }
+      .blob, .card, .pill, .koi, .reed, .ripple, .is-active { animation: none !important; transition: none !important; }
+      .selected-liquid::after { animation: none !important; }
     }
   </style>
 </head>
@@ -194,9 +233,11 @@
       </defs>
     </svg>
 
-    <!-- Koi drifting slowly across the pond -->
+    <!-- A small school of koi drifting slowly across the pond -->
     <svg class="koi koi-a" viewBox="-70 -26 140 52"><use href="#koiShape"/></svg>
     <svg class="koi koi-b" viewBox="-70 -26 140 52"><use href="#koiShape"/></svg>
+    <svg class="koi koi-c" viewBox="-70 -26 140 52"><use href="#koiShape"/></svg>
+    <svg class="koi koi-d" viewBox="-70 -26 140 52"><use href="#koiShape"/></svg>
 
     <!-- Grassy reeds swaying in the lower corners -->
     <svg class="reeds reeds-l" viewBox="0 0 145 175">
