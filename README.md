@@ -119,3 +119,24 @@ in `.github/workflows/pages.yml` on every push to `main`. No server, no cost.
 
 The `backend/` FastAPI app is **optional** and not part of the live site — it's
 kept only in case you ever want a live API instead of the static JSON.
+
+## Moving to your own domain (e.g. `anotherdaycoffee.com`)
+
+GitHub Pages supports custom domains for free (you only pay the registrar for the
+domain itself, ~$10–15/year). When you're ready:
+
+1. **Buy the domain** from any registrar (Namecheap, Cloudflare, GoDaddy, …).
+2. In the repo: **Settings → Pages → Custom domain**, enter the domain, **Save**.
+   This commits a `CNAME` file to the repo automatically.
+3. At the registrar's DNS, add the records GitHub shows you:
+   - For an apex domain (`anotherdaycoffee.com`), four **A** records pointing to
+     `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
+     (and optionally AAAA records for IPv6).
+   - For `www`, a **CNAME** record pointing to `addyzim.github.io`.
+4. Wait for DNS to propagate (minutes to a few hours), then tick **Enforce HTTPS**
+   (GitHub issues a free Let's Encrypt certificate).
+
+The site already uses **relative asset paths**, so it works both at the current
+`/the-corner-cafe/` subpath and at the root of a custom domain — no code changes
+needed. Do **not** add a `CNAME` file manually before you own the domain; an
+unconfigured one would break the current live URL.
