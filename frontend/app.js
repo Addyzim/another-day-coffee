@@ -546,18 +546,16 @@ createApp({
                 <div class="space-y-3">
                   <article v-for="item in g.items" :key="item.id"
                            @click="!isAdmin && openItem(item)"
-                           class="card bg-white border border-stone-200/80 rounded-2xl p-3.5 flex items-center gap-3.5 shadow-md shadow-stone-400/15"
+                           class="card bg-white/90 border border-stone-200/60 rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-stone-400/10"
                            :class="[!isAdmin && cart[item.id] ? 'selected-liquid' : '', !isAdmin ? 'cursor-pointer' : '']">
 
-                    <!-- Thumbnail -->
-                    <div class="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-mocha-300/15 grid place-items-center">
+                    <!-- Thumbnail: only when there's a photo (keeps it airy) -->
+                    <div v-if="item.image || isAdmin" class="shrink-0 w-14 h-14 rounded-xl overflow-hidden bg-stone-100 grid place-items-center">
                       <img v-if="item.image" :src="item.image" alt="" class="w-full h-full object-cover" />
-                      <svg v-else viewBox="0 0 24 24" class="w-7 h-7 text-mocha-300" fill="currentColor" aria-hidden="true">
-                        <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
-                        <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
-                      </svg>
+                      <span v-else class="text-stone-300 text-xl">☕</span>
                     </div>
 
+                    <!-- Name + description -->
                     <div class="min-w-0 flex-1">
                       <h3 class="font-display text-lg font-medium text-mocha-600 leading-snug outline-none"
                           :contenteditable="isAdmin"
@@ -570,19 +568,22 @@ createApp({
                       <input v-if="isAdmin" type="text" :value="item.image || ''" placeholder="Image URL"
                              @blur="saveField(item, 'image', $event)"
                              class="mt-1 w-full text-xs rounded-md bg-stone-100 px-2 py-1 outline-none" />
-                      <span class="block font-display font-semibold text-mocha-600 mt-1 outline-none"
-                            :contenteditable="isAdmin"
-                            :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500 inline-block' : ''"
-                            @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
                     </div>
 
-                    <div v-if="!isAdmin" class="shrink-0 self-center" @click.stop>
-                      <button v-if="!cart[item.id]" @click="addToCart(item)"
-                              class="pill text-xs font-semibold px-3.5 py-2 rounded-full bg-mocha-500 text-white hover:bg-mocha-600">+ {{ t('add') }}</button>
-                      <div v-else class="flex items-center gap-1.5 glass rounded-full p-1">
-                        <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white/80 text-mocha-600 text-lg leading-none">−</button>
-                        <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ cart[item.id] }}</span>
-                        <button @click="inc(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-mocha-500 text-white text-lg leading-none">+</button>
+                    <!-- Right column: price on top, Add beneath -->
+                    <div class="shrink-0 flex flex-col items-end gap-2">
+                      <span class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap outline-none"
+                            :contenteditable="isAdmin"
+                            :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
+                            @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
+                      <div v-if="!isAdmin" @click.stop>
+                        <button v-if="!cart[item.id]" @click="addToCart(item)"
+                                class="pill text-xs font-semibold px-3.5 py-2 rounded-full bg-mocha-500 text-white hover:bg-mocha-600">+ {{ t('add') }}</button>
+                        <div v-else class="flex items-center gap-1.5 bg-stone-100 rounded-full p-1">
+                          <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white text-mocha-600 text-lg leading-none shadow-sm">−</button>
+                          <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ cart[item.id] }}</span>
+                          <button @click="inc(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-mocha-500 text-white text-lg leading-none">+</button>
+                        </div>
                       </div>
                     </div>
                   </article>
