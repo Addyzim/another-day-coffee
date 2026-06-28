@@ -568,11 +568,11 @@ createApp({
                             @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
                       <div v-if="!isAdmin" @click.stop>
                         <button v-if="!cart[item.id]" @click="addToCart(item)" aria-label="Add"
-                                class="pill w-8 h-8 grid place-items-center rounded-full bg-mocha-500 text-white text-xl leading-none hover:bg-mocha-600">+</button>
-                        <div v-else class="flex items-center gap-1 bg-stone-100 rounded-full p-1">
-                          <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white text-mocha-600 text-lg leading-none shadow-sm">−</button>
+                                class="pill w-8 h-8 grid place-items-center rounded-full border border-mocha-300/70 text-mocha-500 bg-white/40 hover:bg-mocha-500 hover:text-white hover:border-mocha-500 text-lg font-light leading-none">+</button>
+                        <div v-else class="flex items-center gap-0.5 bg-white/55 border border-mocha-200/70 rounded-full p-0.5">
+                          <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">−</button>
                           <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ cart[item.id] }}</span>
-                          <button @click="inc(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-mocha-500 text-white text-lg leading-none">+</button>
+                          <button @click="inc(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">+</button>
                         </div>
                       </div>
                     </div>
@@ -679,10 +679,10 @@ createApp({
                 <p class="font-medium text-mocha-600 truncate">{{ nameOf(l) }}</p>
                 <p class="text-xs text-mocha-400">{{ money(l.price) }}</p>
               </div>
-              <div class="flex items-center gap-1.5 glass rounded-full p-1">
-                <button @click="dec(l.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white/70 text-mocha-600 text-lg leading-none">−</button>
+              <div class="flex items-center gap-0.5 bg-white/55 border border-mocha-200/70 rounded-full p-0.5">
+                <button @click="dec(l.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">−</button>
                 <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ l.qty }}</span>
-                <button @click="inc(l.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-mocha-500 text-white text-lg leading-none">+</button>
+                <button @click="inc(l.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">+</button>
               </div>
               <span class="w-20 text-right font-display font-semibold text-mocha-600 text-sm">{{ money(l.price * l.qty) }}</span>
             </div>
@@ -743,10 +743,10 @@ createApp({
               <div v-if="!cart[detailItem.id]">
                 <button @click="addToCart(detailItem)" class="pill px-5 py-2.5 rounded-full bg-mocha-500 text-white font-semibold hover:bg-mocha-600">+ {{ t('add') }}</button>
               </div>
-              <div v-else class="flex items-center gap-2 glass rounded-full p-1">
-                <button @click="dec(detailItem.id)" class="pill w-9 h-9 grid place-items-center rounded-full bg-white/80 text-mocha-600 text-xl leading-none">−</button>
+              <div v-else class="flex items-center gap-1 bg-white/55 border border-mocha-200/70 rounded-full p-1">
+                <button @click="dec(detailItem.id)" class="pill w-9 h-9 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-xl font-light leading-none">−</button>
                 <span class="font-semibold text-mocha-600 w-6 text-center">{{ cart[detailItem.id] }}</span>
-                <button @click="inc(detailItem.id)" class="pill w-9 h-9 grid place-items-center rounded-full bg-mocha-500 text-white text-xl leading-none">+</button>
+                <button @click="inc(detailItem.id)" class="pill w-9 h-9 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-xl font-light leading-none">+</button>
               </div>
             </div>
           </div>
