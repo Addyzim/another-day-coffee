@@ -36,8 +36,6 @@ createApp({
       menu: [],
       editing: null,       // item being added/edited (form model)
       saving: false,
-      uploading: false,
-      uploadPct: 0,
     };
   },
 
@@ -54,13 +52,8 @@ createApp({
     if (!firebase.apps.length) firebase.initializeApp(cfg);
     this.auth = firebase.auth();
     this.db = firebase.firestore();
-    try {
-      this.storage = firebase.storage();
-      // Fail fast instead of silently retrying for ~10 min when uploads are
-      // blocked (Storage not enabled, wrong bucket, or missing CORS).
-      this.storage.setMaxUploadRetryTime(20000);
-      this.storage.setMaxOperationRetryTime(20000);
-    } catch (e) { this.storage = null; }
+    // Images are stored in the repo (frontend/images/), not Firebase Storage
+    // (Storage needs the paid Blaze plan). Item images are plain paths/URLs.
     this.auth.onAuthStateChanged((u) => {
       this.user = u;
       if (u) { this.subscribeOrders(); this.subscribeMenu(); }
@@ -162,26 +155,6 @@ createApp({
     deleteItem(it) {
       if (!confirm(`Удалить «${it.name}»?`)) return;
       this.db.collection("menu").doc(String(it.id)).delete().catch((e) => alert(e.message));
-    },
-    async uploadImage(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      if (!this.storage) { alert("Storage не подключён. Включите Storage в Firebase консоли."); return; }
-      this.uploading = true; this.uploadPct = 0;
-      try {
-        const safe = file.name.replace(/[^a-zA-Z0-9.]/g, "_");
-        const ref = this.storage.ref().child(`menu/${this.editing.id}-${Date.now()}-${safe}`);
-        const task = ref.put(file, { contentType: file.type });
-        await new Promise((res, rej) => task.on("state_changed",
-          (s) => { this.uploadPct = Math.round((s.bytesTransferred / s.totalBytes) * 100); },
-          rej, res));
-        this.editing.image = await ref.getDownloadURL();
-      } catch (err) {
-        console.error("Storage upload failed:", err);
-        alert("Upload failed [" + (err.code || "unknown") + "]: " + err.message +
-              "\n\nbucket: " + (window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.storageBucket));
-      }
-      finally { this.uploading = false; e.target.value = ""; }
     },
     async seedFromJson() {
       if (!confirm("Импортировать позиции из menu.json в базу? (существующие с теми же id перезапишутся)")) return;
@@ -338,10 +311,9 @@ createApp({
               <span v-else class="text-mocha-300 text-2xl">☕</span>
             </div>
             <div class="flex-1">
-              <label class="block">
-                <span class="text-sm font-semibold text-mocha-500">{{ uploading ? 'Загрузка ' + uploadPct + '%' : 'Загрузить фото' }}</span>
-                <input type="file" accept="image/*" @change="uploadImage" :disabled="uploading" class="block w-full text-xs mt-1" />
-              </label>
+              <label class="block"><span class="text-xs font-semibold text-mocha-500">Фото (путь или URL)</span>
+                <input v-model="editing.image" placeholder="images/black-coffee.jpg" class="w-full rounded-xl bg-stone-50 border border-stone-200 px-3 py-2 mt-1 outline-none focus:border-mocha-400 text-sm" /></label>
+              <p class="text-[11px] text-mocha-400 mt-1 leading-snug">Положите файл в <code>frontend/images/</code> репозитория и впишите <code>images/имя.jpg</code>. Можно и полный URL.</p>
               <button v-if="editing.image" @click="editing.image=''" class="text-xs text-red-400 mt-1">Убрать фото</button>
             </div>
           </div>
@@ -369,7 +341,7 @@ createApp({
 
           <div class="flex gap-2 mt-5">
             <button @click="cancelEdit" class="flex-1 bg-stone-100 text-mocha-500 font-semibold rounded-xl py-2.5">Отмена</button>
-            <button @click="saveItem" :disabled="saving || uploading" class="flex-1 bg-mocha-500 hover:bg-mocha-600 text-white font-semibold rounded-xl py-2.5 disabled:opacity-60">{{ saving ? 'Сохранение…' : 'Сохранить' }}</button>
+            <button @click="saveItem" :disabled="saving" class="flex-1 bg-mocha-500 hover:bg-mocha-600 text-white font-semibold rounded-xl py-2.5 disabled:opacity-60">{{ saving ? 'Сохранение…' : 'Сохранить' }}</button>
           </div>
         </div>
       </div>
