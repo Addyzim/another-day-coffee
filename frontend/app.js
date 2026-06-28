@@ -271,7 +271,10 @@ createApp({
       if (!db) { this.showToast(this.t("orderUnavailable")); return; }
 
       this.placing = true;
+      // Short, human-readable order number (time-ordered).
+      const orderNo = "#" + Date.now().toString(36).slice(-5).toUpperCase();
       db.collection("orders").add({
+        orderNo: orderNo,
         cafe: this.cafe.name,
         table: this.tableNo || "",
         note: this.note || "",
@@ -286,7 +289,7 @@ createApp({
         this.tableNo = "";
         this.note = "";
         this.closeCart();
-        this.showToast(this.t("orderPlaced"));
+        this.showToast(this.t("orderPlaced") + " " + orderNo);
       }).catch((e) => {
         console.error("order save failed", e);
         this.showToast(this.t("orderFailed"));
@@ -325,7 +328,29 @@ createApp({
       return out;
     },
 
-    async fetchItems() {
+    // Live menu from Firestore; falls back to the static menu.json.
+    fetchItems() {
+      const db = this.db();
+      if (db) {
+        this.loading = true;
+        if (this._menuUnsub) this._menuUnsub();
+        this._menuUnsub = db.collection("menu").onSnapshot((snap) => {
+          const rows = [];
+          snap.forEach((d) => rows.push(d.data()));
+          if (rows.length) {
+            rows.sort((a, b) => (a.order ?? a.id ?? 0) - (b.order ?? b.id ?? 0));
+            this.items = this.normalizeRows(rows.filter((r) => r.available !== false));
+            this.error = "";
+            this.loading = false;
+          } else {
+            this.loadJsonFallback(); // not seeded yet
+          }
+        }, (err) => { console.error(err); this.loadJsonFallback(); });
+      } else {
+        this.loadJsonFallback();
+      }
+    },
+    async loadJsonFallback() {
       this.loading = true;
       this.error = "";
       try {
