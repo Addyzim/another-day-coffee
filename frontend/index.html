@@ -181,7 +181,8 @@
   <!-- The whole app is constrained to a phone-width column and centered. -->
   <div id="app" class="relative z-10 mx-auto max-w-md min-h-screen"></div>
 
-  <!-- Mount point template lives in app.js to keep everything in one place. -->
-  <script src="app.js"></script>
+  <!-- Mount point template lives in app.js. The ?v= is bumped on each deploy
+       so browsers always fetch the latest version instead of a cached copy. -->
+  <script src="app.js?v=20260628a"></script>
 </body>
 </html>
