@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#efece8" />
+  <title>The Corner Café</title>
+
+  <!-- Vue 3 (global build, no build step needed) -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- SheetJS: lets Admin mode read an uploaded .xlsx entirely in the browser -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Elegant, readable type: Fraunces for display, Inter for body -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script>
+    // Pastel "latte" palette + fonts, exposed as Tailwind utilities.
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Fraunces', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            mocha:  { 300: '#c7b3a3', 400: '#b29f93', 500: '#9a8475', 600: '#7d6757' },
+            sage:   { 200: '#d7e0d0', 300: '#c2cfb8', 400: '#a8b89c' },
+            blush:  { 200: '#efdcd9', 300: '#e3c8c6' },
+            lilac:  { 200: '#ded8ea', 300: '#cbc2e0' },
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    :root { color-scheme: light; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      /* Soft light-gray base with a barely-there warm tint. */
+      background-color: #f3f1ee;
+    }
+    .font-display { font-family: 'Fraunces', Georgia, serif; }
+
+    /* --- Ambient pastel background ---------------------------------------- */
+    /* Three soft, blurred color blobs drift slowly behind the frosted app. */
+    .ambient { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+    .blob { position: absolute; border-radius: 9999px; filter: blur(70px); opacity: 0.55; }
+    .blob-1 { width: 320px; height: 320px; background: #cdd9c4; top: -60px; left: -80px; animation: drift 18s ease-in-out infinite; }
+    .blob-2 { width: 300px; height: 300px; background: #ecd6d3; bottom: -40px; right: -70px; animation: drift 22s ease-in-out infinite reverse; }
+    .blob-3 { width: 260px; height: 260px; background: #d8d0ec; top: 40%; left: 45%; animation: drift 26s ease-in-out infinite; }
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50%      { transform: translate(20px, -28px) scale(1.08); }
+    }
+
+    /* --- Frosted glass ---------------------------------------------------- */
+    .glass {
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+    }
+    .glass-header {
+      background: rgba(243, 241, 238, 0.7);
+      backdrop-filter: blur(16px) saturate(140%);
+      -webkit-backdrop-filter: blur(16px) saturate(140%);
+      border-bottom: 1px solid rgba(157, 132, 117, 0.12);
+    }
+
+    /* --- Card entrance + hover ------------------------------------------- */
+    .card {
+      transition: transform .35s cubic-bezier(.22,.61,.36,1),
+                  box-shadow .35s ease, background-color .35s ease;
+      will-change: transform;
+    }
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px -12px rgba(125, 103, 87, 0.28);
+      background: rgba(255, 255, 255, 0.72);
+    }
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .rise { animation: rise .5s cubic-bezier(.22,.61,.36,1) both; }
+
+    /* --- List transitions (filtering) ----------------------------------- */
+    .list-move        { transition: transform .4s cubic-bezier(.22,.61,.36,1); }
+    .list-enter-active{ transition: all .4s cubic-bezier(.22,.61,.36,1); }
+    .list-leave-active{ transition: all .25s ease; position: absolute; width: calc(100% - 2rem); }
+    .list-enter-from  { opacity: 0; transform: translateY(12px); }
+    .list-leave-to    { opacity: 0; transform: scale(.97); }
+
+    /* --- Toast fade ------------------------------------------------------ */
+    .fade-enter-active, .fade-leave-active { transition: opacity .3s ease, transform .3s ease; }
+    .fade-enter-from, .fade-leave-to { opacity: 0; transform: translate(-50%, 10px); }
+
+    /* --- Pills ----------------------------------------------------------- */
+    .pill { transition: background-color .3s ease, color .3s ease, transform .2s ease, box-shadow .3s ease; }
+    .pill:active { transform: scale(.94); }
+
+    /* Hide the horizontal scrollbar on the category pill row */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .snap-x-mandatory { scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+
+    /* Gentle focus ring for inline-edit fields */
+    [contenteditable="true"]:focus { background: rgba(255,255,255,.6); border-radius: 6px; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .blob, .rise, .card, .pill { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body class="text-mocha-600 antialiased">
+  <!-- Ambient pastel background, sits behind everything -->
+  <div class="ambient" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- The whole app is constrained to a phone-width column and centered. -->
+  <div id="app" class="relative z-10 mx-auto max-w-md min-h-screen"></div>
+
+  <!-- Mount point template lives in app.js to keep everything in one place. -->
+  <script src="app.js"></script>
+</body>
+</html>

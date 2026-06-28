@@ -1,0 +1,74 @@
+{
+  "items": [
+    {
+      "id": 1,
+      "category": "Breakfast",
+      "name": "Avocado Toast",
+      "price": 75000,
+      "description": "Sourdough, smashed avocado, chili flakes"
+    },
+    {
+      "id": 2,
+      "category": "Breakfast",
+      "name": "Greek Yogurt Bowl",
+      "price": 60000,
+      "description": "Yogurt, granola, honey, seasonal fruit"
+    },
+    {
+      "id": 3,
+      "category": "Sandwiches",
+      "name": "Turkey Club",
+      "price": 95000,
+      "description": "Turkey, bacon, lettuce, tomato on ciabatta"
+    },
+    {
+      "id": 4,
+      "category": "Sandwiches",
+      "name": "Caprese Panini",
+      "price": 85000,
+      "description": "Mozzarella, tomato, basil, balsamic glaze"
+    },
+    {
+      "id": 5,
+      "category": "Salads",
+      "name": "Caesar Salad",
+      "price": 80000,
+      "description": "Romaine, parmesan, croutons, Caesar dressing"
+    },
+    {
+      "id": 6,
+      "category": "Salads",
+      "name": "Quinoa Power Bowl",
+      "price": 98000,
+      "description": "Quinoa, chickpeas, kale, lemon tahini"
+    },
+    {
+      "id": 7,
+      "category": "Drinks",
+      "name": "Iced Latte",
+      "price": 45000,
+      "description": "Double espresso over ice with milk"
+    },
+    {
+      "id": 8,
+      "category": "Drinks",
+      "name": "Fresh Lemonade",
+      "price": 35000,
+      "description": "House-made, lightly sweetened"
+    },
+    {
+      "id": 9,
+      "category": "Desserts",
+      "name": "Chocolate Brownie",
+      "price": 38000,
+      "description": "Fudgy, walnuts, sea salt"
+    },
+    {
+      "id": 10,
+      "category": "Desserts",
+      "name": "Fruit Tart",
+      "price": 45000,
+      "description": "Pastry cream, glazed seasonal fruit"
+    }
+  ]
+}
