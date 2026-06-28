@@ -168,7 +168,8 @@ createApp({
     this.detectLang();
     this.applyHash();
     window.addEventListener("hashchange", this.applyHash);
-    this.fetchItems();
+    this.loadJsonFallback();   // instant menu from the static file
+    this.initFirebase();       // then go live (deferred Firebase) in the background
   },
 
   methods: {
@@ -245,22 +246,38 @@ createApp({
     openItem(item) { this.detailItem = item; document.body.style.overflow = "hidden"; },
     closeItem() { this.detailItem = null; if (!this.cartOpen) document.body.style.overflow = ""; },
 
-    // Firestore handle, or null when Firebase isn't configured.
-    db() {
-      if (this._db !== undefined) return this._db;
-      const cfg = window.FIREBASE_CONFIG;
-      try {
-        if (cfg && cfg.projectId && window.firebase) {
+    // Firestore handle (set once deferred Firebase has loaded), or null.
+    db() { return this._db || null; },
+
+    // Initialize Firebase in the background; retries until the deferred SDK loads.
+    initFirebase() {
+      const tryInit = () => {
+        const cfg = window.FIREBASE_CONFIG;
+        if (cfg && cfg.projectId && window.firebase && firebase.firestore) {
           if (!firebase.apps.length) firebase.initializeApp(cfg);
           this._db = firebase.firestore();
-        } else {
-          this._db = null;
+          this.subscribeMenu();
+          return true;
         }
-      } catch (e) {
-        console.error(e);
-        this._db = null;
-      }
-      return this._db;
+        return false;
+      };
+      if (tryInit()) return;
+      let n = 0;
+      const t = setInterval(() => { if (tryInit() || ++n > 80) clearInterval(t); }, 100);
+    },
+
+    // Live menu from Firestore overrides the static menu once it arrives.
+    subscribeMenu() {
+      if (this._menuUnsub) this._menuUnsub();
+      this._menuUnsub = this._db.collection("menu").onSnapshot((snap) => {
+        const rows = [];
+        snap.forEach((d) => rows.push(d.data()));
+        if (rows.length) {
+          rows.sort((a, b) => (a.order ?? a.id ?? 0) - (b.order ?? b.id ?? 0));
+          this.items = this.normalizeRows(rows.filter((r) => r.available !== false));
+          this.error = "";
+        }
+      }, (e) => console.error(e));
     },
 
     // Submit the order straight to the kitchen dashboard (Firestore).
@@ -328,28 +345,8 @@ createApp({
       return out;
     },
 
-    // Live menu from Firestore; falls back to the static menu.json.
-    fetchItems() {
-      const db = this.db();
-      if (db) {
-        this.loading = true;
-        if (this._menuUnsub) this._menuUnsub();
-        this._menuUnsub = db.collection("menu").onSnapshot((snap) => {
-          const rows = [];
-          snap.forEach((d) => rows.push(d.data()));
-          if (rows.length) {
-            rows.sort((a, b) => (a.order ?? a.id ?? 0) - (b.order ?? b.id ?? 0));
-            this.items = this.normalizeRows(rows.filter((r) => r.available !== false));
-            this.error = "";
-            this.loading = false;
-          } else {
-            this.loadJsonFallback(); // not seeded yet
-          }
-        }, (err) => { console.error(err); this.loadJsonFallback(); });
-      } else {
-        this.loadJsonFallback();
-      }
-    },
+    // Retry button -> reload the static menu instantly.
+    fetchItems() { this.loadJsonFallback(); },
     async loadJsonFallback() {
       this.loading = true;
       this.error = "";
@@ -434,14 +431,7 @@ createApp({
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         </button>
-        <!-- Brand lockup: a faint coffee-bean watermark sits behind the name -->
-        <div class="relative flex items-center min-w-0">
-          <svg viewBox="0 0 24 24" class="absolute -left-2 top-1/2 -translate-y-1/2 h-10 w-10 text-mocha-500 opacity-[0.12] z-0 pointer-events-none" fill="currentColor" aria-hidden="true">
-            <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
-            <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#f3f1ee" stroke-width="1.6" stroke-linecap="round"/>
-          </svg>
-          <h1 class="relative z-10 font-display text-xl font-semibold text-mocha-600 truncate pl-1">{{ cafe.name }}</h1>
-        </div>
+        <h1 class="font-display text-xl font-semibold text-mocha-600 truncate">{{ cafe.name }}</h1>
       </div>
     </header>
 
@@ -546,7 +536,7 @@ createApp({
                 <div class="space-y-3">
                   <article v-for="item in g.items" :key="item.id"
                            @click="!isAdmin && openItem(item)"
-                           class="card bg-white/90 border border-stone-200/60 rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-stone-400/10"
+                           class="card glass rounded-2xl p-4 flex items-center gap-4 shadow-sm shadow-mocha-300/20"
                            :class="[!isAdmin && cart[item.id] ? 'selected-liquid' : '', !isAdmin ? 'cursor-pointer' : '']">
 
                     <!-- Thumbnail: only when there's a photo (keeps it airy) -->
@@ -570,16 +560,16 @@ createApp({
                              class="mt-1 w-full text-xs rounded-md bg-stone-100 px-2 py-1 outline-none" />
                     </div>
 
-                    <!-- Right column: price on top, Add beneath -->
-                    <div class="shrink-0 flex flex-col items-end gap-2">
+                    <!-- Right column: price, with a small + (or stepper) to its right -->
+                    <div class="shrink-0 flex items-center gap-2.5">
                       <span class="font-display font-semibold text-mocha-600 text-lg whitespace-nowrap outline-none"
                             :contenteditable="isAdmin"
                             :class="isAdmin ? 'border-b border-dashed border-mocha-300 focus:border-mocha-500' : ''"
                             @blur="saveField(item, 'price', $event)">{{ isAdmin ? item.price : money(item.price) }}</span>
                       <div v-if="!isAdmin" @click.stop>
-                        <button v-if="!cart[item.id]" @click="addToCart(item)"
-                                class="pill text-xs font-semibold px-3.5 py-2 rounded-full bg-mocha-500 text-white hover:bg-mocha-600">+ {{ t('add') }}</button>
-                        <div v-else class="flex items-center gap-1.5 bg-stone-100 rounded-full p-1">
+                        <button v-if="!cart[item.id]" @click="addToCart(item)" aria-label="Add"
+                                class="pill w-8 h-8 grid place-items-center rounded-full bg-mocha-500 text-white text-xl leading-none hover:bg-mocha-600">+</button>
+                        <div v-else class="flex items-center gap-1 bg-stone-100 rounded-full p-1">
                           <button @click="dec(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-white text-mocha-600 text-lg leading-none shadow-sm">−</button>
                           <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ cart[item.id] }}</span>
                           <button @click="inc(item.id)" class="pill w-7 h-7 grid place-items-center rounded-full bg-mocha-500 text-white text-lg leading-none">+</button>

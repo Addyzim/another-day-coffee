@@ -12,13 +12,14 @@
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- SheetJS: lets Admin mode read an uploaded .xlsx entirely in the browser -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-  <!-- Firebase (optional): realtime order database. Inert until configured. -->
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <!-- SheetJS (admin only) + Firebase are heavy, so they load deferred and
+       never block first paint. The app renders the menu from menu.json
+       immediately, then Firebase enables live updates + ordering in the
+       background once it's ready. -->
+  <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script defer src="firebase-config.js"></script>
 
   <!-- Elegant, readable type: Fraunces for display, Inter for body -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -80,10 +81,10 @@
 
     /* --- Frosted glass ---------------------------------------------------- */
     .glass {
-      background: rgba(255, 255, 255, 0.72);
-      backdrop-filter: blur(14px) saturate(135%);
-      -webkit-backdrop-filter: blur(14px) saturate(135%);
-      border: 1px solid rgba(120, 90, 60, 0.10);
+      background: rgba(255, 255, 255, 0.60);
+      backdrop-filter: blur(16px) saturate(135%);
+      -webkit-backdrop-filter: blur(16px) saturate(135%);
+      border: 1px solid rgba(255, 255, 255, 0.55);
     }
     .glass-header {
       background: rgba(243, 241, 238, 0.7);
@@ -183,6 +184,6 @@
 
   <!-- Mount point template lives in app.js. The ?v= is bumped on each deploy
        so browsers always fetch the latest version instead of a cached copy. -->
-  <script src="app.js?v=20260628d"></script>
+  <script src="app.js?v=20260628e"></script>
 </body>
 </html>
