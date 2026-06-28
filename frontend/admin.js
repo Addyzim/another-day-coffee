@@ -273,7 +273,7 @@ createApp({
             </div>
             <div v-if="expanded[o.id]" class="mt-3 pt-3 border-t border-stone-100 space-y-1">
               <div v-for="(it,i) in o.items" :key="i" class="flex justify-between text-sm">
-                <span class="text-mocha-600">{{ it.qty }}× {{ it.name }}<span v-if="it.name_vi" class="text-mocha-400"> · {{ it.name_vi }}</span></span>
+                <span class="text-mocha-600">{{ it.qty }}× {{ it.name }}<span v-if="it.name_vi" class="text-mocha-400"> · {{ it.name_vi }}</span><span v-if="it.milk" class="text-amber-700"> · {{ it.milk }}</span></span>
                 <span class="text-mocha-500">{{ money(it.price * it.qty) }}</span>
               </div>
               <p v-if="o.note" class="text-sm text-mocha-500 pt-2"><b>Note:</b> {{ o.note }}</p>

@@ -96,6 +96,13 @@ const STRINGS = {
   },
 };
 
+// Milk choices offered for coffee items (in the cart).
+const MILK = [
+  { key: "standard", add: 0,     label: { en: "Standard milk", vi: "Sữa tiêu chuẩn" } },
+  { key: "oat",      add: 10000, label: { en: "Oat milk (+10.000 ₫)", vi: "Sữa yến mạch (+10.000 ₫)" } },
+  { key: "none",     add: 0,     label: { en: "No milk", vi: "Không sữa" } },
+];
+
 const NAV = [
   { key: "menu", icon: "M4 7h16M4 12h16M4 17h16" },
   { key: "about", icon: "M12 3a9 9 0 100 18 9 9 0 000-18zM12 11v5M12 8h0" },
@@ -121,6 +128,8 @@ createApp({
       importing: false,
 
       cart: {},          // id -> qty
+      milk: {},          // id -> milk key (coffee items)
+      milkOptions: MILK,
       cartOpen: false,
       tableNo: "",
       note: "",
@@ -156,12 +165,17 @@ createApp({
       return Object.entries(this.cart)
         .map(([id, qty]) => {
           const it = this.items.find((i) => String(i.id) === String(id));
-          return it ? { ...it, qty } : null;
+          if (!it) return null;
+          const coffee = this.hasMilk(it);
+          const milkKey = coffee ? (this.milk[id] || "standard") : null;
+          const m = coffee ? MILK.find((x) => x.key === milkKey) : null;
+          const milkAdd = m ? m.add : 0;
+          return { ...it, qty, coffee, milkKey, milkAdd, unit: it.price + milkAdd };
         })
         .filter(Boolean);
     },
     cartCount() { return Object.values(this.cart).reduce((a, b) => a + b, 0); },
-    cartTotal() { return this.cartLines.reduce((s, l) => s + l.price * l.qty, 0); },
+    cartTotal() { return this.cartLines.reduce((s, l) => s + l.unit * l.qty, 0); },
   },
 
   mounted() {
@@ -235,7 +249,17 @@ createApp({
     enterAdmin() { this.isAdmin = true; this.go("menu"); this.showToast(this.t("adminOn")); },
 
     // ----- cart ------------------------------------------------------------
-    addToCart(item) { this.cart[item.id] = (this.cart[item.id] || 0) + 1; },
+    // Does this item take a milk choice? (coffee / coldbrew categories)
+    hasMilk(it) {
+      const c = (it.category || "").toLowerCase();
+      return c.includes("coffee") || c.includes("coldbrew");
+    },
+    setMilk(id, key) { this.milk[id] = key; },
+
+    addToCart(item) {
+      this.cart[item.id] = (this.cart[item.id] || 0) + 1;
+      if (this.hasMilk(item) && !this.milk[item.id]) this.milk[item.id] = "standard";
+    },
     inc(id) { this.cart[id] = (this.cart[id] || 0) + 1; },
     dec(id) {
       const q = (this.cart[id] || 0) - 1;
@@ -298,7 +322,8 @@ createApp({
         total: this.cartTotal,
         status: "open",
         items: this.cartLines.map((l) => ({
-          name: l.name, name_vi: l.name_vi || "", qty: l.qty, price: l.price,
+          name: l.name, name_vi: l.name_vi || "", qty: l.qty, price: l.unit,
+          milk: (l.coffee && l.milkKey) ? this.L(MILK.find((m) => m.key === l.milkKey).label) : "",
         })),
         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       }).then(() => {
@@ -668,8 +693,8 @@ createApp({
           <p v-if="cartLines.length === 0" class="text-center text-mocha-400 py-8">{{ t('emptyCart') }}</p>
 
           <div v-else class="space-y-3">
-            <div v-for="l in cartLines" :key="l.id" class="flex items-center gap-3">
-              <div class="shrink-0 w-11 h-11 rounded-lg overflow-hidden bg-mocha-300/15 grid place-items-center">
+            <div v-for="l in cartLines" :key="l.id" class="flex items-start gap-3">
+              <div class="shrink-0 w-11 h-11 rounded-lg overflow-hidden bg-mocha-300/15 grid place-items-center mt-0.5">
                 <img v-if="l.image" :src="l.image" alt="" class="w-full h-full object-cover" />
                 <svg v-else viewBox="0 0 24 24" class="w-5 h-5 text-mocha-300" fill="currentColor" aria-hidden="true">
                   <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
@@ -677,14 +702,20 @@ createApp({
               </div>
               <div class="flex-1 min-w-0">
                 <p class="font-medium text-mocha-600 truncate">{{ nameOf(l) }}</p>
-                <p class="text-xs text-mocha-400">{{ money(l.price) }}</p>
+                <p class="text-xs text-mocha-400">{{ money(l.unit) }}</p>
+                <select v-if="l.coffee" :value="l.milkKey" @change="setMilk(l.id, $event.target.value)"
+                        class="mt-1 text-xs rounded-lg bg-white/60 border border-mocha-200/70 text-mocha-500 px-2 py-1 outline-none focus:border-mocha-400">
+                  <option v-for="m in milkOptions" :key="m.key" :value="m.key">{{ L(m.label) }}</option>
+                </select>
               </div>
-              <div class="flex items-center gap-0.5 bg-white/55 border border-mocha-200/70 rounded-full p-0.5">
-                <button @click="dec(l.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">−</button>
-                <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ l.qty }}</span>
-                <button @click="inc(l.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">+</button>
+              <div class="shrink-0 flex flex-col items-end gap-1.5">
+                <span class="font-display font-semibold text-mocha-600 text-sm whitespace-nowrap">{{ money(l.unit * l.qty) }}</span>
+                <div class="flex items-center gap-0.5 bg-white/55 border border-mocha-200/70 rounded-full p-0.5">
+                  <button @click="dec(l.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">−</button>
+                  <span class="text-sm font-semibold text-mocha-600 w-5 text-center">{{ l.qty }}</span>
+                  <button @click="inc(l.id)" class="pill w-7 h-7 grid place-items-center rounded-full text-mocha-500 hover:bg-white text-lg font-light leading-none">+</button>
+                </div>
               </div>
-              <span class="w-20 text-right font-display font-semibold text-mocha-600 text-sm">{{ money(l.price * l.qty) }}</span>
             </div>
 
             <div class="pt-3 space-y-3 border-t border-white/40">
