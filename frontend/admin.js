@@ -477,8 +477,8 @@ createApp({
   template: `
   <div class="max-w-xl lg:max-w-6xl mx-auto min-h-screen px-4 sm:px-6 py-5">
 
-    <!-- Language toggle (always available) -->
-    <div class="flex justify-end mb-2">
+    <!-- Language toggle (sign-in / not-configured screens only) -->
+    <div v-if="!user" class="flex justify-end mb-2">
       <div class="inline-flex rounded-full bg-white border border-stone-200 overflow-hidden text-xs font-semibold">
         <button @click="lang='en'" :class="lang==='en' ? 'bg-mocha-500 text-white' : 'text-mocha-500'" class="px-3 py-1">EN</button>
         <button @click="lang='vi'" :class="lang==='vi' ? 'bg-mocha-500 text-white' : 'text-mocha-500'" class="px-3 py-1">VI</button>
@@ -507,12 +507,23 @@ createApp({
     </div>
 
     <div v-else>
-      <header class="flex items-center justify-between mb-4">
-        <h1 class="font-display text-2xl font-semibold leading-none">{{ t('admin') }}</h1>
-        <div class="flex items-center gap-2">
+      <header class="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4">
+        <div class="flex items-center gap-2 min-w-0">
+          <svg viewBox="0 0 24 24" class="h-8 w-8 text-mocha-500 shrink-0" fill="currentColor" aria-hidden="true">
+            <ellipse cx="12" cy="12" rx="6.4" ry="9.4" transform="rotate(32 12 12)"/>
+            <path d="M12 3.6 C 8.6 8, 15.4 16, 12 20.4" transform="rotate(32 12 12)" fill="none" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <h1 class="font-display text-xl sm:text-2xl font-semibold leading-none truncate">Another Day Coffee</h1>
+          <span class="text-mocha-400 font-medium whitespace-nowrap">· {{ t('admin') }}</span>
+        </div>
+        <div class="flex items-center gap-2 ml-auto">
+          <div class="inline-flex rounded-full bg-white border border-stone-200 overflow-hidden text-xs font-semibold">
+            <button @click="lang='en'" :class="lang==='en' ? 'bg-mocha-500 text-white' : 'text-mocha-500'" class="px-2.5 py-1">EN</button>
+            <button @click="lang='vi'" :class="lang==='vi' ? 'bg-mocha-500 text-white' : 'text-mocha-500'" class="px-2.5 py-1">VI</button>
+          </div>
           <button v-if="section==='orders'" @click="soundOn = !soundOn" :title="soundOn ? t('soundOn') : t('soundOff')"
                   class="w-9 h-9 grid place-items-center rounded-full bg-white border border-stone-200">{{ soundOn ? '🔔' : '🔕' }}</button>
-          <button @click="logout" class="text-sm text-mocha-500 px-3 py-1.5 rounded-full bg-white border border-stone-200">{{ t('signOut') }}</button>
+          <button @click="logout" class="text-sm text-mocha-500 px-3 py-1.5 rounded-full bg-white border border-stone-200 whitespace-nowrap">{{ t('signOut') }}</button>
         </div>
       </header>
 
